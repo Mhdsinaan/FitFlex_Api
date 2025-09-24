@@ -1,0 +1,6 @@
+@FitFlex_HostAddress = http://localhost:5098
+
+GET {{FitFlex_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
