@@ -1,5 +1,6 @@
 ﻿using FitFlex.Application.DTO_s;
 using FitFlex.Application.Interfaces;
+using FitFlex.Domain.Entities.Users_Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitFlex.Controllers
@@ -25,8 +26,10 @@ namespace FitFlex.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetUserBookings(int userId)
+        public async Task<IActionResult> GetUserBookings()
         {
+          
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
             var result = await _bookingService.GetUserBookings(userId);
             if (result is null) return NotFound(result);
             return Ok(result);

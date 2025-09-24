@@ -26,4 +26,8 @@
     <ProjectReference Include="..\FitFlex.Domain\FitFlex.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repository interface\" />
+  </ItemGroup>
+
 </Project>

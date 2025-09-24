@@ -7,9 +7,9 @@ using FitFlex.Domain.Enum;
 
 namespace FitFlex.Application.DTO_s.UserTrainerDto
 {
-    public class TrainerSelectingDtoTrainerSelectingDto
+    public class TrainerSelectingDto
     {
-        public int UserId { get; set; }
+        //public int UserId { get; set; }
         public int TrainerId { get; set; }
         //public int PlanID { get; set; }
       

@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using FitFlex.Application.DTO_s.subscriptionDto;
 using FitFlex.Application.DTO_s.UserTrainerDto;
 using FitFlex.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitFlex.Controllers
@@ -18,34 +20,45 @@ namespace FitFlex.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SelectionTrainer([FromBody] TrainerSelectingDtoTrainerSelectingDto dto)
+        [Authorize(Roles = "user")]
+
+        public async Task<IActionResult> SelectionTrainer([FromBody] TrainerSelectingDto dto)
         {
-            var result = await _iuser.TrainerSelcetion(dto);
+            //var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
+            //            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
 
-            if (result == null || result.Data == null)
-                return NotFound(result);
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
 
-          
-            var subscription = await _iuser.TrainerSelcetion(dto);
-            if (subscription == null)
-                return BadRequest("No active subscription found for this user");
 
-            return Ok(result);
+            if (userId == 0) Unauthorized();
+
+            var trainerselect = await _iuser.TrainerSelcetion(userId, dto.TrainerId);
+            if (trainerselect is null) return NotFound(trainerselect);
+  
+            
+
+            return Ok(trainerselect);
         }
         [HttpPost("SelectSubscription")]
         public async Task<IActionResult> SubscriptionSelection([FromBody] SubscriptionSelectionDto dto)
         {
-            var result = await _iuser.SubscriptionSelection(dto);
+
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
+            var result = await _iuser.SubscriptionSelection(dto.PlanId,userId);
 
             if (result == null || result.Data == null)
                 return BadRequest(result);
 
             return Ok(result);
         }
-        [HttpGet("UserByid/{id}")]
-        public async Task<IActionResult> SubscriptionById(int id)
+        [HttpGet("UserByid")]
+        [Authorize(Roles = "user")]
+        public async Task<IActionResult> SubscriptionById()
         {
-            var result = await _iuser.GetUserSubscriptionByUserId(id);
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
+            var result = await _iuser.GetUserSubscriptionByUserId(userId);
 
             if (result == null || result.Data == null)
                 return NotFound(result);
@@ -66,9 +79,13 @@ namespace FitFlex.Controllers
         }
 
         [HttpGet("TrainerByid/")]
-        public async Task<IActionResult> GetSubscriptionsByTrainerId(int TrainerID)
+        [Authorize(Roles = "Trainer")]
+
+        public async Task<IActionResult> GetSubscriptionsByTrainerId()
         {
-            var result = await _iuser.GetSubscriptionsByTrainerId(TrainerID);
+            int TrainerId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
+            var result = await _iuser.GetSubscriptionsByTrainerId(TrainerId);
 
             if (result == null || result.Data == null)
                 return NotFound(result);

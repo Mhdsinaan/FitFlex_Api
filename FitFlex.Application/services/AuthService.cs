@@ -212,7 +212,6 @@ namespace FitFlex.Application.services
             }
         }
 
-        // Token creation
         private string CreateToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();

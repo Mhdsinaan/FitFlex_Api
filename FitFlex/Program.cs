@@ -15,11 +15,9 @@ using FitFlex.Application.services;
 using FitFlex.Middleware;
 using Microsoft.OpenApi.Models;
 using FitFlex.Application.Mapper;
-using Microsoft.Extensions.DependencyInjection;
-using FitFlex.Application.Services;
 using Microsoft.AspNetCore.SignalR;
-
-using FitFlex.Chatting; // create Hubs folder and ChatHub
+using FitFlex.Chatting;
+using FitFlex.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +30,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // React dev URL
+        policy.WithOrigins("http://localhost:5173") 
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -53,7 +51,6 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key)
@@ -78,10 +75,10 @@ builder.Services.AddAuthentication(options =>
 // Authorization
 builder.Services.AddAuthorization();
 
-// Add Controllers
+// Controllers
 builder.Services.AddControllers();
 
-// DB Context
+// DbContext
 builder.Services.AddDbContext<MyContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("connection"))
 );
@@ -93,6 +90,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<TrainersValidation>();
 builder.Services.AddValidatorsFromAssemblyContaining<TrainerRegisterDtoValidation>();
 builder.Services.AddValidatorsFromAssemblyContaining<TrainerLoginDtoValidation>();
 
+// HttpContext accessor
 builder.Services.AddHttpContextAccessor();
 
 // Repositories & Services
@@ -104,12 +102,9 @@ builder.Services.AddScoped<IUserSubscription, IuserSelectionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<Ibooking, BookingService>();
 builder.Services.AddScoped<ISessions, SessionService>();
-builder.Services.AddScoped<IWorkoutPlanService,WorkoutPlanService>();
-builder.Services.AddScoped<IUserWorkoutAssignmentService,UserWorkoutAssignmentService>();
-builder.Services.AddScoped<IAdditionalSubscriptionService,AdditionalSubscriptionService>();
-
-
-
+builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+builder.Services.AddScoped<IUserWorkoutAssignmentService, UserWorkoutAssignmentService>();
+builder.Services.AddScoped<IAdditionalSubscriptionService, AdditionalSubscriptionService>();
 
 // SignalR
 builder.Services.AddSignalR(options =>
@@ -117,12 +112,9 @@ builder.Services.AddSignalR(options =>
     options.EnableDetailedErrors = true;
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
 });
-
-// SignalR UserIdProvider (JWT)
 builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
-
-// Swagger with JWT support
+// Swagger with JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opt =>
 {
@@ -130,7 +122,7 @@ builder.Services.AddSwaggerGen(opt =>
     opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Please enter token",
+        Description = "Please enter JWT token",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         BearerFormat = "JWT",
@@ -143,16 +135,15 @@ builder.Services.AddSwaggerGen(opt =>
             {
                 Reference = new OpenApiReference
                 {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
             },
-            new string[]{}
+            new string[] {}
         }
     });
 });
 
-builder.Services.AddSingleton<IUserIdProvider, FitFlex.Chatting.NameUserIdProvider>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -160,9 +151,6 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 var app = builder.Build();
-
-// Custom Middleware
-app.UseMiddleware<UserIdMiddleware>();
 
 // Swagger
 if (app.Environment.IsDevelopment())
@@ -174,17 +162,20 @@ if (app.Environment.IsDevelopment())
 // HTTPS
 app.UseHttpsRedirection();
 
-// ✅ Use CORS BEFORE Authentication/Authorization
+// CORS
 app.UseCors("AllowReactApp");
 
 // Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map Controllers
+// Custom Middleware — now after Authentication
+app.UseMiddleware<UserIdMiddleware>();
+
+// Controllers
 app.MapControllers();
 
-// Map SignalR Hub
+// SignalR Hub
 app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

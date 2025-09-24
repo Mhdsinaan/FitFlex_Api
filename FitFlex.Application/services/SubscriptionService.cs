@@ -62,18 +62,36 @@ namespace FitFlex.Application.Services
 
         public async Task<APiResponds<IEnumerable<SubscriptionPlansResponseDto>>> GetAllPlansAsync()
         {
+          
             var plans = await _subscription.GetAllAsync();
-            if (plans == null || !plans.Any())
-                return new APiResponds<IEnumerable<SubscriptionPlansResponseDto>>("200", "No plans available", Enumerable.Empty<SubscriptionPlansResponseDto>());
 
-            var planDtos = _mapper.Map<IEnumerable<SubscriptionPlansResponseDto>>(plans);
-            return new APiResponds<IEnumerable<SubscriptionPlansResponseDto>>("200", "Plans retrieved successfully", planDtos);
+          
+            var activePlans = plans?.Where(p => !p.IsDelete).ToList();
+
+    
+            if (activePlans == null || !activePlans.Any())
+            {
+                return new APiResponds<IEnumerable<SubscriptionPlansResponseDto>>(
+                    "200",
+                    "No plans available",
+                    Enumerable.Empty<SubscriptionPlansResponseDto>()
+                );
+            }
+
+          
+            var planDtos = _mapper.Map<IEnumerable<SubscriptionPlansResponseDto>>(activePlans);
+
+            return new APiResponds<IEnumerable<SubscriptionPlansResponseDto>>(
+                "200",
+                "Plans retrieved successfully",
+                planDtos
+            );
         }
 
         public async Task<APiResponds<SubscriptionPlansResponseDto>> GetPlanByIdAsync(int id)
         {
             var plan = await _subscription.GetByIdAsync(id);
-            if (plan == null)
+            if (plan == null && plan.IsDelete)
                 return new APiResponds<SubscriptionPlansResponseDto>("404", "Plan not found", null);
 
             var response = _mapper.Map<SubscriptionPlansResponseDto>(plan);
@@ -83,7 +101,7 @@ namespace FitFlex.Application.Services
         public async Task<APiResponds<SubscriptionPlansResponseDto>> UpdatePlanAsync(int id, SubscriptionPlanDto planDto)
         {
             var existing = await _subscription.GetByIdAsync(id);
-            if (existing == null)
+            if (existing == null || existing.IsDelete)
                 return new APiResponds<SubscriptionPlansResponseDto>("404", "Plan not found", null);
 
             existing.Name = planDto.Name;

@@ -18,7 +18,6 @@ namespace FitFlex.Controllers
             _subscriptionService = subscriptionService;
         }
 
-        // GET: api/subscription
         [HttpGet("all")]
         public async Task<IActionResult> GetAllPlans()
         {
@@ -27,7 +26,7 @@ namespace FitFlex.Controllers
             return Ok(result);
         }
 
-        // GET: api/subscription/{id}
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPlanById(int id)
         {
@@ -44,7 +43,7 @@ namespace FitFlex.Controllers
             return Ok(result);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPatch("update/{id}")]
         public async Task<IActionResult> UpdatePlan(int id, [FromBody] SubscriptionPlanDto dto)
         {
             var result = await _subscriptionService.UpdatePlanAsync(id, dto);

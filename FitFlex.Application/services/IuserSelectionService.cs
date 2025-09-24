@@ -16,6 +16,8 @@ using FitFlex.Domain.Enum;
 using FitFlex.Infrastructure.Db_context;
 using FitFlex.Infrastructure.Interfaces;
 using FitFlex.Infrastructure.Repository_service;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 
@@ -170,13 +172,13 @@ namespace FitFlex.Application.services
 
 
 
-        public async Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(SubscriptionSelectionDto dto)
+        public async Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(int PlanID,int UserID)
         {
             try
             {
 
                 
-                var user = await _userRepo.GetByIdAsync(dto.UserId);
+                var user = await _userRepo.GetByIdAsync(UserID);
                 if (user is null)
                     return new APiResponds<UserSubscriptionResponseDto>("404", "User not found", null);
                 if (user.Role == UserRole.Admin)
@@ -192,7 +194,7 @@ namespace FitFlex.Application.services
                 
                 var userTrainer = await _userTraniner.GetAllQueryable()
                       .Include(ut => ut.Trainer)
-                      .FirstOrDefaultAsync(ut => ut.UserId == dto.UserId);
+                      .FirstOrDefaultAsync(ut => ut.UserId == UserID);
 
 
                 if (userTrainer is null)
@@ -202,12 +204,12 @@ namespace FitFlex.Application.services
 
 
                
-                var plan = await _subscription.GetByIdAsync(dto.PlanId);
-                if (plan is null)
+                var plan = await _subscription.GetByIdAsync(PlanID);
+                if (plan ==null || plan.IsDelete)
                     return new APiResponds<UserSubscriptionResponseDto>("404", "Plan not found", null);
 
                 var existing = (await _usersub.GetAllAsync())
-                                .FirstOrDefault(s => s.UserId == dto.UserId && s.EndDate > DateTime.UtcNow);
+                                .FirstOrDefault(s => s.UserId == UserID && s.EndDate > DateTime.UtcNow);
                 if (existing != null)
                     return new APiResponds<UserSubscriptionResponseDto>("400", "User already has an active subscription", null);
 
@@ -258,36 +260,28 @@ namespace FitFlex.Application.services
                 );
             }
         }
-        public async Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(TrainerSelectingDtoTrainerSelectingDto dto)
+        public async Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(int userid, int TrainerID)
         {
             try
             {
-                var user = await _userRepo.GetByIdAsync(dto.UserId);
-                if (user is null) return new APiResponds<UserTrainerResponseDto>("404", "user not found",null);
-
-                if (user.Role == UserRole.Admin)
-                {
-                    return new APiResponds<UserTrainerResponseDto>(
-                        "403",
-                        "Admin users do not have subscriptions",
-                        null
-                    );
-                }
 
 
-                var trainer = await _TrainerRepo.GetByIdAsync(dto.TrainerId);
-                if (trainer is null) return new APiResponds<UserTrainerResponseDto>("404", "Trainer not found", null);
+                var userById = await _userRepo.GetByIdAsync(userid);
+                if (userById is null) return new APiResponds<UserTrainerResponseDto>("401", "user  not found", null);
+
+                var trainer = await _TrainerRepo.GetByIdAsync(TrainerID);
+                if (trainer ==null || (trainer.status != TrainerStatus.Accept)) return new APiResponds<UserTrainerResponseDto>("404", "Trainer not found", null);
                 var usertrainers = await _userTraniner.GetAllAsync();
-                var exist = usertrainers.FirstOrDefault(p => p.UserId == dto.UserId && p.IsDelete == false);
+                var exist = usertrainers.FirstOrDefault(p => p.UserId == userid && p.IsDelete == false);
                 if (exist != null)
                 {
                     var res = new UserTrainerResponseDto
                     {
-                        UserId = user.ID,
+                        UserId = userid,
                         TrainerId = trainer.Id,
                         AssignedDate = exist.CreatedOn,
                         TrainerName = trainer.FullName,
-                        UserName = user.UserName,
+                        UserName = userById.UserName,
                         shift=trainer.Shift.ToString()
                         
                     };
@@ -298,10 +292,10 @@ namespace FitFlex.Application.services
                 //if (existingPlan != null) return new APiResponds<UserTrainerResponseDto>("404", "USer have a plan", null);
                 var userplan = new UserTrainer
                 {
-                    UserId = user.ID,
+                    UserId = userid,
                     TrainerId = trainer.Id,
                     CreatedOn = DateTime.UtcNow,
-                    CreatedBy = user.ID
+                    CreatedBy = userid
 
                 };
                 await _userTraniner.AddAsync(userplan);
@@ -316,7 +310,7 @@ namespace FitFlex.Application.services
                     shift = trainer.Shift.ToString(),
 
 
-                    UserName = user.UserName,
+                    UserName = userById.UserName,
 
 
                 };
@@ -326,7 +320,11 @@ namespace FitFlex.Application.services
             }
             catch (Exception ex)
             {
-                return new APiResponds<UserTrainerResponseDto>("500", $"An error occurred: {ex.Message}", null);
+                var errorMessage = ex.InnerException != null
+                    ? $"{ex.Message} | Inner: {ex.InnerException.Message}"
+                    : ex.Message;
+
+                return new APiResponds<UserTrainerResponseDto>("500", $"An error occurred: {errorMessage}", null);
             }
 
 

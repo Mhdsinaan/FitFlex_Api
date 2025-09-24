@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using FitFlex.Application.DTO_s.subscriptionDto;
 using FitFlex.Application.DTO_s.UserTrainerDto;
 using FitFlex.CommenAPi;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FitFlex.Application.Interfaces
 {
     public interface IUserSubscription
     {
-        Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(TrainerSelectingDtoTrainerSelectingDto dto);
-        Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(SubscriptionSelectionDto dto);
+        Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(int userid , int TrainerId);
+        Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(int PlanID, int UserID);
         Task<APiResponds<List<UserSubscriptionResponseDto>>> AllUserSubscriptions();
 
         Task<APiResponds<UserSubscriptionResponseDto>> GetUserSubscriptionByUserId(int userId);
