@@ -105,6 +105,8 @@ builder.Services.AddScoped<ISessions, SessionService>();
 builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
 builder.Services.AddScoped<IUserWorkoutAssignmentService, UserWorkoutAssignmentService>();
 builder.Services.AddScoped<IAdditionalSubscriptionService, AdditionalSubscriptionService>();
+builder.Services.AddScoped<IAttendance, AttendanceService>();
+
 
 // SignalR
 builder.Services.AddSignalR(options =>
