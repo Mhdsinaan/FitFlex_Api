@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
         return Ok(trainer);
     }
 
-    [HttpPut("{trainerId}/status")] 
+    [HttpPatch("{trainerId}/status")] 
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateTrainerStatus(int trainerId, [FromQuery] TrainerStatus newStatus,Trainershift shift)
     {

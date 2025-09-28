@@ -9,7 +9,6 @@ namespace FitFlex.Application.DTO_s.workout_DTO
 {
     public class PunchAttendanceDto
     {
-        public int AttendanceId { get; set; }      
         public int TrainerId { get; set; }       
         public SessionTime Slot { get; set; }
     }

@@ -4,6 +4,7 @@ using FitFlex.Infrastructure.Db_context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitFlex.Infrastructure.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20250926064517_add level in workout plan")]
+    partial class addlevelinworkoutplan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,9 +248,6 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("DurationInMonth")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsAdditional")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
@@ -292,6 +292,10 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("FeatureName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
@@ -304,17 +308,8 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
 
-                    b.Property<int>("PlanID")
-                        .HasColumnType("int");
-
                     b.Property<long>("Price")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<int>("UserSubscriptionId")
                         .HasColumnType("int");

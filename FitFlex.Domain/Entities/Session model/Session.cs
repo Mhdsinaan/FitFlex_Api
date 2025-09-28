@@ -15,8 +15,6 @@ namespace FitFlex.Domain.Entities.Session_model
 
         public string Name { get; set; }
 
-
-
         public int TrainerId { get; set; }
 
         public SessionTime StartTime { get; set; }

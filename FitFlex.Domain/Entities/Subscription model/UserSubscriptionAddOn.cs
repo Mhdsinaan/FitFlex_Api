@@ -12,13 +12,17 @@ namespace FitFlex.Domain.Entities.Subscription_model
     {
         public int Id { get; set; }
 
-      
+        public int UserId { get; set; }
+
+        public int PlanID { get; set; }
+
+
         public int UserSubscriptionId { get; set; }
         public DateTime EndDate { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
 
 
-        public string FeatureName { get; set; }
+        public subscriptionStatus Status { get; set; }
         public long Price { get; set; }
 
        

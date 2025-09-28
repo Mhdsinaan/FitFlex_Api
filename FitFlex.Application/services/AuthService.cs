@@ -117,9 +117,19 @@ namespace FitFlex.Application.services
                     u.Email == dto.Email &&
                     u.Password == dto.Password &&
                     !u.IsDelete);
+                var Trainers = await _trainerRepo.GetAllAsync();
+                var trainer = Trainers.FirstOrDefault(u =>
+                    u.Email == dto.Email &&
+                    
+                    !u.IsDelete);
 
                 if (loginData == null)
                     return new APiResponds<LoginResponseDto>("401", "Invalid email or password", null);
+
+                if (loginData.Role == UserRole.Trainer && trainer.status!=TrainerStatus.Accept )
+                {
+                    return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+                }
 
                 var token = CreateToken(loginData);
 

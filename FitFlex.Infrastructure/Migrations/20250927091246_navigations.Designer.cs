@@ -4,6 +4,7 @@ using FitFlex.Infrastructure.Db_context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitFlex.Infrastructure.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20250927091246_navigations")]
+    partial class navigations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,11 +274,11 @@ namespace FitFlex.Infrastructure.Migrations
 
             modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.UserSubscriptionAddOn", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserSubscriptionId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
@@ -304,26 +307,12 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
 
-                    b.Property<int>("PlanID")
-                        .HasColumnType("int");
-
                     b.Property<long>("Price")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.HasKey("UserSubscriptionId", "Id");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserSubscriptionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserSubscriptionId");
-
-                    b.ToTable("UserSubscriptionAddOn");
+                    b.ToTable("UserSubscriptionAddOns");
                 });
 
             modelBuilder.Entity("FitFlex.Domain.Entities.Trainer_model.Trainer", b =>
@@ -718,6 +707,9 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("SubscriptionId")
                         .HasColumnType("int");
 
+                    b.Property<int>("SubscriptionPlanId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SubscriptionStatus")
                         .HasColumnType("int");
 
@@ -727,14 +719,21 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("userSubscriptionId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("SubscriptionPlanId");
 
                     b.HasIndex("TrainerID");
 
                     b.HasIndex("UserId")
                         .IsUnique();
+
+                    b.HasIndex("userSubscriptionId");
 
                     b.ToTable("UserSubscriptions");
                 });
@@ -845,6 +844,12 @@ namespace FitFlex.Infrastructure.Migrations
                     b.HasOne("FitFlex.Domain.Entities.Subscription_model.SubscriptionPlan", "Subscription")
                         .WithMany("UserSubscriptions")
                         .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FitFlex.Domain.Entities.Subscription_model.SubscriptionPlan", "SubscriptionPlan")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -860,11 +865,21 @@ namespace FitFlex.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UserSubscription", "userSubscription")
+                        .WithMany()
+                        .HasForeignKey("userSubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Subscription");
+
+                    b.Navigation("SubscriptionPlan");
 
                     b.Navigation("Trainer");
 
                     b.Navigation("User");
+
+                    b.Navigation("userSubscription");
                 });
 
             modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.SubscriptionPlan", b =>

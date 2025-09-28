@@ -42,7 +42,7 @@ namespace FitFlex.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPatch("update/{id}")]
         public async Task<IActionResult> UpdateWorkoutPlan(int id, [FromBody] CreateWorkoutPlanRequest dto)
         {
             var result = await _workoutPlanService.UpdateWorkoutPlanAsync(id, dto);

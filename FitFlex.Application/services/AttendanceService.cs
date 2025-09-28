@@ -97,6 +97,7 @@ namespace FitFlex.Application.services
                 };
 
                 await _AttendenceRepo.AddAsync(attendance);
+                await _AttendenceRepo.SaveChangesAsync();
 
                 return new APiResponds<bool>("200", "Punch-in successful", true);
             }
@@ -121,6 +122,7 @@ namespace FitFlex.Application.services
                 attendance.PunchOut = DateTime.Now;
 
               _AttendenceRepo.Update(attendance);
+                await _AttendenceRepo.SaveChangesAsync();
 
                 return new APiResponds<bool>("200", "Punch-out successful", true);
             }
@@ -140,6 +142,7 @@ namespace FitFlex.Application.services
                     return new APiResponds<bool>("404", "Attendance not found", false);
 
                 attendance.Status = status.Status;
+                await _AttendenceRepo.SaveChangesAsync();
 
 
 

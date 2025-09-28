@@ -21,7 +21,6 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentResponseDto> CreateStripePaymentIntentAsync(UserSubscription subscription)
     {
-        // 🔹 Check if already has a pending/processing payment
         var existingPayment = (await _paymentRepo.GetAllAsync())
                           .FirstOrDefault(p => p.UserSubscriptionId == subscription.Id
                                             && (p.Status == PaymentStatus.Pending
@@ -29,7 +28,6 @@ public class PaymentService : IPaymentService
 
         if (existingPayment != null)
         {
-            // ❌ Throw error instead of returning old payment
             throw new Exception("A payment is already in progress for this subscription. Please complete or cancel it before creating a new one.");
         }
 
@@ -37,10 +35,10 @@ public class PaymentService : IPaymentService
         if (subscriptionPlan == null)
             throw new Exception("Subscription plan not found");
 
-        // 🔹 Create Stripe PaymentIntent
+       
         var options = new PaymentIntentCreateOptions
         {
-            Amount = (long)(subscriptionPlan.Price * 100), // Stripe expects paise
+            Amount = (long)(subscriptionPlan.Price * 100), 
             Currency = "inr",
             PaymentMethodTypes = new List<string> { "card" }
         };
@@ -52,8 +50,8 @@ public class PaymentService : IPaymentService
         {
             UserSubscriptionId = subscription.Id,
             StripePaymentIntentId = paymentIntent.Id,
-            Amount = subscriptionPlan.Price,   // ✅ store in rupees
-            Status = PaymentStatus.Pending,    // first step → Pending
+            Amount = subscriptionPlan.Price,   
+            Status = PaymentStatus.Pending,   
             Currency = options.Currency,
             ClientSecret = paymentIntent.ClientSecret,
             

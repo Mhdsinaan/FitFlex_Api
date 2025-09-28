@@ -1,5 +1,6 @@
 ﻿using FitFlex.Application.DTO_s;
 using FitFlex.Domain.Entities;
+using FitFlex.Domain.Entities.Attendance;
 using FitFlex.Domain.Entities.Session_model;
 using FitFlex.Domain.Entities.stripePayment;
 using FitFlex.Domain.Entities.Subscription_model;
@@ -31,6 +32,8 @@ namespace FitFlex.Infrastructure.Db_context
         public DbSet<UserTrainer> UserTrianers { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<UserSession> UserSession { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
+
 
 
 
@@ -67,6 +70,8 @@ namespace FitFlex.Infrastructure.Db_context
                 .HasOne(a => a.WorkoutPlan)
                 .WithMany(p => p.Assignments)
                 .HasForeignKey(a => a.WorkoutPlanId);
+
+            
 
             //modelBuilder.Entity<UserSubscriptionAddOn>()
             //            .HasOne(a => a.UserSubscription)
