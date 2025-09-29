@@ -13,7 +13,7 @@ namespace FitFlex.Application.Interfaces
     public interface IUserSubscription
     {
         Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(int userid , int TrainerId);
-        Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(int PlanID, int UserID);
+        Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(SubscriptionSelectionDto dto, int userId);
         Task<APiResponds<List<UserSubscriptionResponseDto>>> AllUserSubscriptions();
 
         Task<APiResponds<UserSubscriptionResponseDto>> GetUserSubscriptionByUserId(int userId);

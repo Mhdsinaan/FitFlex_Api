@@ -11,6 +11,7 @@ using FitFlex.Domain.Entities.Subscription_model;
 using FitFlex.Domain.Entities.Users_Model;
 using FitFlex.Domain.Enum;
 using FitFlex.Infrastructure.Interfaces;
+using FitFlex.Infrastructure.Repository_service;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitFlex.Application.services
@@ -21,17 +22,20 @@ namespace FitFlex.Application.services
         private readonly IRepository<User> _Userrepo;
         private readonly IRepository<UserSubscription> _userSubscriptionRepo;
         private readonly IRepository<SubscriptionPlan> _SubscriptionRepo;
+        private readonly IRepository<AdditionalPlan> _Additional;
 
         public AdditionalSubscriptionService(
             IRepository<UserSubscriptionAddOn> Addon,
             IRepository<UserSubscription> userSubscriptionRepo,
             IRepository<SubscriptionPlan> SubscriptionRepo,
-            IRepository<User> Userrepo)
+            IRepository<User> Userrepo,
+            IRepository<AdditionalPlan> Additional)
         {
             _Addon = Addon;
             _userSubscriptionRepo = userSubscriptionRepo;
             _SubscriptionRepo = SubscriptionRepo;
             _Userrepo = Userrepo;
+            _Additional = Additional;
         }
 
         public async Task<APiResponds<AdditionalFeatureResponseDto>> AddAdditionalFeatureAsync(AddAdditionalFeatureRequestDto request,int userId)
@@ -84,7 +88,6 @@ namespace FitFlex.Application.services
 
                 var additonal = new UserSubscriptionAddOn
                 {
-                    PlanID = dto.PlanID,
                     UserId = UserID,
                     UserSubscriptionId = userplan.Id,
                     CreatedOn = DateTime.UtcNow,
@@ -181,17 +184,19 @@ namespace FitFlex.Application.services
             var create = await _SubscriptionRepo.GetAllAsync();
             var exist = create.FirstOrDefault(p => p.Name == plan.Name);
             if (exist != null) return new APiResponds<SubscriptionPlansResponseDto>("409", "Plan Already exist", null);
-            var newplan = new SubscriptionPlan
+            var newplan = new AdditionalPlan
             {
                 Name = plan.Name,
                 Description = plan.Description,
                 DurationInMonth = plan.DurationInMonth,
                 Price = plan.Price,
-                IsAdditional = true
+                CreatedOn=DateTime.UtcNow
+                
+              
 
             };
-            await _SubscriptionRepo.AddAsync(newplan);
-            await _SubscriptionRepo.SaveChangesAsync();
+            await _Additional.AddAsync(newplan);
+            await _Additional.SaveChangesAsync();
 
             var response = new SubscriptionPlansResponseDto
             {

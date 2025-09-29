@@ -16,12 +16,13 @@ namespace FitFlex.Application.DTO_s.subscriptionDto
         public string PlanName { get; set; }
         public int TrainerId { get; set; }
         public string TrainerName { get; set; }
+        public subscriptionStatus SubscriptionStatus { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public List<SubscriptionPlansResponseDto> AdditionalPlans { get; set; } = new List<SubscriptionPlansResponseDto>();
 
 
 
-        public subscriptionStatus SubscriptionStatus { get; set; } 
-        public DateTime  StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+       
     }
 }

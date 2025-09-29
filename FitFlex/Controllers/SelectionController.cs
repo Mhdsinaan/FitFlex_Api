@@ -42,16 +42,17 @@ namespace FitFlex.Controllers
         [HttpPost("SelectSubscription")]
         public async Task<IActionResult> SubscriptionSelection([FromBody] SubscriptionSelectionDto dto)
         {
-
             int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
 
-            var result = await _iuser.SubscriptionSelection(dto.PlanId,userId);
+            
+            var result = await _iuser.SubscriptionSelection(dto, userId);
 
             if (result == null || result.Data == null)
                 return BadRequest(result);
 
             return Ok(result);
         }
+
         [HttpGet("UserByid")]
         [Authorize(Roles = "user")]
         public async Task<IActionResult> SubscriptionById()

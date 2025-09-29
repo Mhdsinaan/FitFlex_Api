@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using FitFlex.Application.Interfaces;
-using FitFlex.Domain.Entities.stripePayment;
 using FitFlex.Domain.Entities.Subscription_model;
 using FitFlex.Infrastructure.Interfaces;
 using FitFlex.Application.DTO_s.payment_dtos;
+using FitFlex.CommenAPi;
 
 namespace FitFlex.API.Controllers
 {
@@ -13,53 +13,53 @@ namespace FitFlex.API.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IRepository<UserSubscription> _userSubscriptionRepo;
+        private readonly IRepository<UserSubscriptionAddOn> _userAddOnRepo;
 
         public PaymentController(
             IPaymentService paymentService,
-            IRepository<UserSubscription> userSubscriptionRepo)
+            IRepository<UserSubscription> userSubscriptionRepo,
+            IRepository<UserSubscriptionAddOn> userAddOnRepo)
         {
             _paymentService = paymentService;
             _userSubscriptionRepo = userSubscriptionRepo;
+            _userAddOnRepo = userAddOnRepo;
         }
-
 
         [HttpPost("create-intent")]
-        public async Task<IActionResult> CreatePaymentIntent(CreatePaymentIntentRequestDto request)
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentRequestDto request)
         {
-            try
-            {
-                var subscription = await _userSubscriptionRepo.GetByIdAsync(request.UserSubscriptionId);
-                if (subscription == null)
-                    return NotFound("Subscription not found");
+            var mainSubscription = await _userSubscriptionRepo.GetByIdAsync(request.UserSubscriptionId);
+            if (mainSubscription == null)
+                return Ok(new APiResponds<PaymentResponseDto>("404", "Main subscription not found", null));
 
-                var result = await _paymentService.CreateStripePaymentIntentAsync(subscription);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            // Fetch add-ons
+            var addOns = (await _userAddOnRepo.GetAllAsync())
+                         .Where(a => request.AddOnIds.Contains(a.Id))
+                         .ToList();
+
+            var result = await _paymentService.CreateStripePaymentIntentForMultipleAsync(mainSubscription, addOns);
+            return Ok(result);
         }
-
 
         public class ConfirmPaymentDto
         {
             public string PaymentIntentId { get; set; }
+            public List<int> AddOnIds { get; set; }
         }
 
         [HttpPost("confirm")]
         public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmPaymentDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.PaymentIntentId))
-                return BadRequest(new { message = "PaymentIntentId is required." });
+                return Ok(new APiResponds<bool>("400", "PaymentIntentId is required", false));
 
-            var success = await _paymentService.ConfirmPaymentAsync(dto.PaymentIntentId);
+            // Fetch add-ons
+            var addOns = (await _userAddOnRepo.GetAllAsync())
+                         .Where(a => dto.AddOnIds.Contains(a.Id))
+                         .ToList();
 
-            if (!success)
-                return BadRequest(new { message = "Payment confirmation failed or already confirmed." });
-
-            return Ok(new { message = "Payment confirmed successfully." });
+            var result = await _paymentService.ConfirmPaymentForMultipleAsync(dto.PaymentIntentId, addOns);
+            return Ok(result);
         }
-
     }
 }

@@ -13,22 +13,22 @@ namespace FitFlex.Domain.Entities.stripePayment
         public UserSubscription UserSubscription { get; set; }
 
        
-        public string StripePaymentIntentId { get; set; } // Stripe Payment Intent ID
-        public string ClientSecret { get; set; } // Optional, sent to frontend for completing payment
+        public string StripePaymentIntentId { get; set; } 
+        public string ClientSecret { get; set; } 
 
-        // Amount in smallest currency unit (paise for INR)
+      
         public long Amount { get; set; }
 
-        // Currency code
+       
         public string Currency { get; set; } = "inr";
 
-        // Payment status
-        public PaymentStatus Status { get; set; } // Pending, Paid, Failed, Refunded
+    
+        public PaymentStatus Status { get; set; }
 
-        // When the payment was completed
+      
         public DateTime? PaidOn { get; set; }
 
-        // Timestamps
+       
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public DateTime? ModifiedOn { get; set; }
         public bool IsDeleted { get; set; } = false;
