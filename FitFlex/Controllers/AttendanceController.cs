@@ -21,7 +21,7 @@ namespace FitFlex.API.Controllers
             _attendanceService = attendanceService;
         }
 
-        
+
         [HttpGet("trainer/{trainerId}")]
         public async Task<IActionResult> GetByTrainer(int trainerId)
         {
@@ -35,10 +35,10 @@ namespace FitFlex.API.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUser()
         {
-            int userid= Convert.ToInt32(HttpContext.Items["UserId"]);
+            int userid = Convert.ToInt32(HttpContext.Items["UserId"]);
 
             var result = await _attendanceService.GetAttendanceByUserAsync(userid);
-            if (result.Data == null || result.Data.Count == 0)
+            if (result == null )
                 return NotFound(result);
 
             return Ok(result);
@@ -52,10 +52,10 @@ namespace FitFlex.API.Controllers
 
             var result = await _attendanceService.PunchInAsync(dto, UserId);
             if (result is null) return NotFound(result);
-            return Ok(result) ;
+            return Ok(result);
         }
 
-        // POST: api/Attendance/punchout
+       
         [HttpPost("punchout")]
         public async Task<IActionResult> PunchOut([FromBody] PunchAttendanceDto dto)
         {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FitFlex.Application.DTO_s.subscriptionDto;
 using FitFlex.Application.DTO_s.UserTrainerDto;
 using FitFlex.CommenAPi;
+using FitFlex.Domain.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitFlex.Application.Interfaces
@@ -19,8 +20,6 @@ namespace FitFlex.Application.Interfaces
         Task<APiResponds<UserSubscriptionResponseDto>> GetUserSubscriptionByUserId(int userId);
         Task<APiResponds<List<UserSubscriptionResponseDto>>> GetSubscriptionsByTrainerId(int trainerId);
 
-        Task<APiResponds<bool>> BlockSubscriptionAsync(int userId);
-        Task<APiResponds<bool>> UnblockSubscriptionAsync(int userId);
         //Task<APiResponds<bool>> DeleteIfExpiredAsync(int subscriptionId);
 
 

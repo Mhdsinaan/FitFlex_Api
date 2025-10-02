@@ -23,8 +23,8 @@ namespace FitFlex.Application.Interfaces
         Task<APiResponds<TrainerResponseDto?>> UpdateTrainerStatusAsync(int trainerId, TrainerStatus newStatus,Trainershift shift);
 
 
-       
 
+        Task<APiResponds<string>> ChangeTrainerAsync(int userId, int newTrainerId, int currentUserId);
         Task<APiResponds<List<UserTrainerResponseDto>>> GetAllAssignedUsers();
      
 

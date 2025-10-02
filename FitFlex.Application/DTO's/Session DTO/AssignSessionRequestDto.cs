@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FitFlex.Domain.Enum;
 
 namespace FitFlex.Application.DTO_s.Session_DTO
 {
-    public class SessionCreationDto
+    public class AssignSessionRequestDto
     {
-        public string Name { get; set; }
-        public string Details { get; set; }
-
-        
-
-
-
+       
+        public int SessionId { get; set; }  
     }
 }

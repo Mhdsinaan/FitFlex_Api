@@ -26,5 +26,4 @@ public class UserSubscription : BaseEntity
 
 
 
-    public DateTime? BlockedAt { get; set; }
 }

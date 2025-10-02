@@ -76,33 +76,29 @@ namespace FitFlex.Application.services
 
         public async Task<APiResponds<List<UserSubscriptionResponseDto>>> GetSubscriptionsByTrainerId(int trainerId)
         {
-
-            var subscriptions = await _usersub.GetAllQueryable()
-                .Include(u => u.User)
-                .Include(s => s.Subscription)
-                .Include(t => t.Trainer)
+           
+            var result = await _usersub.GetAllQueryable()
                 .Where(s => s.TrainerID == trainerId)
+                .Select(s => new UserSubscriptionResponseDto
+                {
+                    UserId = s.UserId,
+                    UserName = s.User.UserName,         
+                    PlanId = s.SubscriptionId,
+                    PlanName = s.Subscription.Name,      
+                    TrainerId = s.TrainerID,
+                    TrainerName = s.Trainer.FullName,   
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    SubscriptionStatus = s.SubscriptionStatus
+                })
                 .ToListAsync();
 
-            if (!subscriptions.Any())
+            if (result.Count == 0)
                 return new APiResponds<List<UserSubscriptionResponseDto>>("404", "No subscriptions for this trainer", null);
 
-
-            var result = subscriptions.Select(s => new UserSubscriptionResponseDto
-            {
-                UserId = s.UserId,
-                UserName = s.User?.UserName,
-                PlanId = s.SubscriptionId,
-                PlanName = s.Subscription?.Name,
-                TrainerId = s.TrainerID,
-                TrainerName = s.Trainer?.FullName,
-                StartDate = s.StartDate,
-                EndDate = s.EndDate,
-                SubscriptionStatus = s.SubscriptionStatus
-            }).ToList();
-
-            return new APiResponds<List<UserSubscriptionResponseDto>>("200", "success", result);
+            return new APiResponds<List<UserSubscriptionResponseDto>>("200", "Success", result);
         }
+
 
 
         public async Task<APiResponds<UserSubscriptionResponseDto>> GetUserSubscriptionByUserId(int userId)
@@ -377,55 +373,10 @@ namespace FitFlex.Application.services
 
 
         }
-        public async Task<APiResponds<bool>> BlockSubscriptionAsync(int userId)
-        {
-            var sub = await _usersub.GetAllQueryable()
-                .FirstOrDefaultAsync(s =>  s.UserId == userId);
-
-            if (sub == null)
-                return new APiResponds<bool>("404", "Subscription not found for this user", false);
-
-            if(sub.SubscriptionStatus==subscriptionStatus.Blocked)
-            {
-                return new APiResponds<bool>("404", "its already blocked user", false);
-            }
-            sub.SubscriptionStatus = subscriptionStatus.Blocked;
-            sub.BlockedAt = DateTime.UtcNow;
-
-            _usersub.Update(sub);
-            await _usersub.SaveChangesAsync();
-
-            return new APiResponds<bool>("200", "Subscription blocked successfully", true);
-        }
+      
 
 
-        public async Task<APiResponds<bool>> UnblockSubscriptionAsync(int userId)
-        {
-            var sub = await _usersub.GetAllQueryable()
-                .FirstOrDefaultAsync(s =>  s.UserId == userId && s.SubscriptionStatus==subscriptionStatus.Blocked);
-
-            if (sub == null)
-                return new APiResponds<bool>("404", "there is no blocked user", false);
-
-            if (sub.BlockedAt.HasValue && DateTime.UtcNow - sub.BlockedAt.Value > TimeSpan.FromDays(150))
-            {
-                sub.SubscriptionStatus = subscriptionStatus.Expired;
-
-                _usersub.Update(sub);
-                await _usersub.SaveChangesAsync();
-
-                return new APiResponds<bool>("410", "Subscription expired after block period", false);
-            }
-
-            
-            sub.SubscriptionStatus = subscriptionStatus.Active;
-            sub.BlockedAt = null;
-
-            _usersub.Update(sub);
-            await _usersub.SaveChangesAsync();
-
-            return new APiResponds<bool>("200", "Subscription unblocked successfully", true);
-        }
+       
 
         
     }

@@ -33,11 +33,10 @@ public class PaymentService : IPaymentService
     {
         try
         {
-            // Validate main subscription
+            
             if (mainSubscription == null)
                 return new APiResponds<PaymentResponseDto>("404", "Main subscription is null", null);
 
-            // Check for existing pending/processing payments (main + addons)
             var existingPayment = (await _paymentRepo.GetAllAsync())
                 .FirstOrDefault(p =>
                     (p.UserSubscriptionId == mainSubscription.Id
@@ -47,17 +46,14 @@ public class PaymentService : IPaymentService
             if (existingPayment != null)
                 return new APiResponds<PaymentResponseDto>("400", "A payment is already in progress", null);
 
-            // Calculate total amount (in Rupees)
             long totalAmount = 0;
 
-            // Get main plan
             var mainPlan = await _subscriptionPlanRepo.GetByIdAsync(mainSubscription.SubscriptionId);
             if (mainPlan == null)
                 return new APiResponds<PaymentResponseDto>("404", "Main subscription plan not found", null);
 
             totalAmount += mainPlan.Price;
 
-            // Get add-on plans
             foreach (var addOn in addOns)
             {
                 var addOnPlan = await _AdditionalSubscriptionRepo.GetByIdAsync(addOn.AdditionalPlanId);
@@ -69,10 +65,9 @@ public class PaymentService : IPaymentService
             }
 
 
-            // Create Stripe PaymentIntent (amount in Paisa)
             var options = new PaymentIntentCreateOptions
             {
-                Amount = (long)(totalAmount * 100), // convert to paisa
+                Amount = (long)(totalAmount * 100), 
                 Currency = "inr",
                 PaymentMethodTypes = new List<string> { "card" }
             };
@@ -80,12 +75,12 @@ public class PaymentService : IPaymentService
             var service = new PaymentIntentService();
             var paymentIntent = await service.CreateAsync(options);
 
-            // Save payment record in DB (amount stored in Rupees)
+           
             var payment = new Payment
             {
                 UserSubscriptionId = mainSubscription.Id,
                 StripePaymentIntentId = paymentIntent.Id,
-                Amount = totalAmount, // stored in Rupees
+                Amount = totalAmount, 
                 Status = PaymentStatus.Pending,
                 Currency = options.Currency,
                 ClientSecret = paymentIntent.ClientSecret,
@@ -95,13 +90,13 @@ public class PaymentService : IPaymentService
             await _paymentRepo.AddAsync(payment);
             await _paymentRepo.SaveChangesAsync();
 
-            // Prepare response
+          
             var response = new PaymentResponseDto
             {
                 Id = payment.Id,
                 UserSubscriptionId = mainSubscription.Id,
                 StripePaymentIntentId = payment.StripePaymentIntentId,
-                Amount = payment.Amount, // Rupees
+                Amount = payment.Amount, 
                 Currency = payment.Currency,
                 ClientSecret = payment.ClientSecret,
                 Status = payment.Status.ToString(),
@@ -137,7 +132,7 @@ public class PaymentService : IPaymentService
             var service = new PaymentIntentService();
             var options = new PaymentIntentConfirmOptions
             {
-                PaymentMethod = "pm_card_visa" // Replace with actual method from client
+                PaymentMethod = "pm_card_visa" 
             };
 
             var intent = await service.ConfirmAsync(paymentIntentId, options);
@@ -148,7 +143,7 @@ public class PaymentService : IPaymentService
                 payment.PaidOn = DateTime.UtcNow;
                 await _paymentRepo.SaveChangesAsync();
 
-                // Update main subscription
+                
                 var mainSubscription = await _userSubscriptionRepo.GetByIdAsync(payment.UserSubscriptionId);
                 if (mainSubscription != null)
                 {
@@ -156,7 +151,7 @@ public class PaymentService : IPaymentService
                     mainSubscription.SubscriptionStatus = subscriptionStatus.Active;
                 }
 
-                // Update all add-ons
+              
                 foreach (var addOn in addOns)
                 {
                     addOn.PaymentStatus = PaymentStatus.Paid;

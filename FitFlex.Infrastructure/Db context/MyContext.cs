@@ -30,9 +30,13 @@ namespace FitFlex.Infrastructure.Db_context
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<UserTrainer> UserTrianers { get; set; }
+        public DbSet<Workout> WorkoutPlans{ get; set; }
+        public DbSet<WorkoutExercise> WorkoutExercise { get; set; }
+        public DbSet<UserWorkoutAssignment> UserWorkoutAssignment { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<UserSession> UserSession { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
+
 
 
 

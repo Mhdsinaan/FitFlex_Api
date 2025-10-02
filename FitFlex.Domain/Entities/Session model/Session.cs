@@ -12,18 +12,8 @@ namespace FitFlex.Domain.Entities.Session_model
     public class Session:BaseEntity
     {
         public int Id { get; set; }
-
         public string Name { get; set; }
-
-        public int TrainerId { get; set; }
-
-        public SessionTime StartTime { get; set; }
-
-        public int MaxParticipants { get; set; }
-
-     
-        public int CurrentParticipants { get; set; }
-
-        public bool IsBooked => CurrentParticipants >= MaxParticipants;
+        public string Details { get; set; }
+        public SessionTime TimeSlot { get; set; }   
     }
 }

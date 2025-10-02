@@ -28,7 +28,7 @@ namespace FitFlex.Application.services
             _trainerRepo = trainerRepo;
         }
 
-        
+
         public async Task<APiResponds<UserResponseDto>> GetByUser(int id)
         {
             try
@@ -53,7 +53,7 @@ namespace FitFlex.Application.services
             }
         }
 
-       
+
         public async Task<APiResponds<List<UserResponseDto>>> GetAllAsync()
         {
             try
@@ -81,7 +81,7 @@ namespace FitFlex.Application.services
             }
         }
 
-       
+
         public async Task<APiResponds<TrainerResponseDto>> GetTrainerByID(int id)
         {
             try
@@ -107,7 +107,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<LoginResponseDto>> Login(LoginDto dto)
         {
             try
@@ -120,13 +120,13 @@ namespace FitFlex.Application.services
                 var Trainers = await _trainerRepo.GetAllAsync();
                 var trainer = Trainers.FirstOrDefault(u =>
                     u.Email == dto.Email &&
-                    
+
                     !u.IsDelete);
 
                 if (loginData == null)
                     return new APiResponds<LoginResponseDto>("401", "Invalid email or password", null);
 
-                if (loginData.Role == UserRole.Trainer && trainer.status!=TrainerStatus.Accept )
+                if (loginData.Role == UserRole.Trainer && trainer.status != TrainerStatus.Accept)
                 {
                     return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
                 }
@@ -149,7 +149,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<string>> Register(RegisterDto dto)
         {
             try
@@ -177,7 +177,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<string>> TrainerRegistration(TrainerRegisterDto dto)
         {
             try
@@ -188,7 +188,7 @@ namespace FitFlex.Application.services
                 if (existingUser != null)
                     return new APiResponds<string>("400", "Trainer already exists", null);
 
-               
+
                 var newUser = new User
                 {
                     UserName = dto.FullName,
@@ -200,7 +200,7 @@ namespace FitFlex.Application.services
                 await _userRepo.AddAsync(newUser);
                 await _userRepo.SaveChangesAsync();
 
-                
+
                 var newTrainer = new Trainer
                 {
                     FullName = dto.FullName,
@@ -245,5 +245,29 @@ namespace FitFlex.Application.services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        public async Task<APiResponds<string>> BlockUnBlock(int userId)
+        {
+            try
+            {
+                var user = await _userRepo.GetByIdAsync(userId);
+                if (user == null || user.IsDelete)
+                    return new APiResponds<string>("404", "User not found", null);
+
+              
+                user.Isblock = !user.Isblock;
+
+                _userRepo.Update(user);
+                await _userRepo.SaveChangesAsync();
+
+                var message = user.Isblock ? "User blocked successfully" : "User unblocked successfully";
+                return new APiResponds<string>("200", message, null);
+            }
+            catch (Exception ex)
+            {
+                return new APiResponds<string>("500", ex.Message, null);
+            }
+        }
+
     }
 }

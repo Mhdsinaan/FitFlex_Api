@@ -101,11 +101,14 @@ builder.Services.AddScoped<ISubscription, SubscriptionService>();
 builder.Services.AddScoped<IUserSubscription, IuserSelectionService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<Ibooking, BookingService>();
-builder.Services.AddScoped<ISessions, SessionService>();
 builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
 builder.Services.AddScoped<IUserWorkoutAssignmentService, UserWorkoutAssignmentService>();
 builder.Services.AddScoped<IAdditionalSubscriptionService, AdditionalSubscriptionService>();
 builder.Services.AddScoped<IAttendance, AttendanceService>();
+builder.Services.AddScoped<ISessions, SessionService>();
+builder.Services.AddScoped<IUserSession, UserSessionService>();
+
+
 
 
 // SignalR

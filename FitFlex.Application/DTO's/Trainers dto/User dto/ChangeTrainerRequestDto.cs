@@ -4,15 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FitFlex.Application.DTO_s.workout_DTO
+namespace FitFlex.Application.DTO_s.Trainers_dto.User_dto
 {
-    public class AssignWorkoutRequest
+    public class ChangeTrainerRequestDto
     {
         public int UserId { get; set; }
-        public int WorkoutID { get; set; }
-
-      
+        public int NewTrainerId { get; set; }
     }
-
-
 }

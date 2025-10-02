@@ -11,11 +11,13 @@ namespace FitFlex.Application.Interfaces
 {
     public interface IUserWorkoutAssignmentService
     {
-        Task<APiResponds<string>> AssignWorkoutPlanAsync(int userId, int workoutPlanId);
-        Task<APiResponds<string>> UpdateAssignmentStatusAsync(int assignmentId, AssignmentStatus newStatus);
-        Task<APiResponds<UserWorkoutAssignmentResponse>> GetAssignmentByIdAsync(int id);
-        Task<APiResponds<IEnumerable<UserWorkoutAssignmentResponse>>> GetAssignmentsByUserAsync(int userId);
-        Task<APiResponds<List<UserWorkoutAssignmentResponse>>> GetAllAssignmentsAsync();
-        Task<APiResponds<string>> DeleteAssignmentAsync(int id);
+        Task<APiResponds<AssignWorkoutResponseDto>> AssignWorkoutAsync(AssignWorkoutRequest request, int TrainerId);
+
+        Task<APiResponds<List<UserWorkoutAssignmentResponse>>> GetTodayWorkoutsByUserAsync(int userId);
+
+        Task<APiResponds<List<WorkoutDto>>> GetAllWorkoutsByUserAsync(int userId);
+        Task<APiResponds<WorkoutDto>> UpdateAssignmentStatusAsync(int assignmentId, AssignmentStatus status);
+
+        Task<APiResponds<string>> DeleteAssignmentAsync(int assignmentId);
     }
 }

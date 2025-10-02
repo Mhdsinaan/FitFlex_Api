@@ -93,27 +93,7 @@ namespace FitFlex.Controllers
 
             return Ok(result);
         }
-        [HttpPut("block/")]
-        public async Task<IActionResult> BlockSubscription(int UserID)
-        {
-            var result = await _iuser.BlockSubscriptionAsync(UserID);
-
-            if (result == null || result.Data == null)
-                return NotFound(result);
-
-            return Ok(result);
-        }
-
-        [HttpPut("unblock/")]
-        public async Task<IActionResult> UnblockSubscription(int UserID)
-        {
-            var result = await _iuser.UnblockSubscriptionAsync(UserID);
-
-            if (result == null || result.Data == null)
-                return NotFound(result);
-
-            return Ok(result);
-        }
+       
 
        
 
