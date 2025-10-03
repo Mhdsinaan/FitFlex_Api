@@ -117,21 +117,47 @@ namespace FitFlex.Application.services
                     u.Email == dto.Email &&
                     u.Password == dto.Password &&
                     !u.IsDelete);
-                var Trainers = await _trainerRepo.GetAllAsync();
-                var trainer = Trainers.FirstOrDefault(u =>
-                    u.Email == dto.Email &&
-
-                    !u.IsDelete);
 
                 if (loginData == null)
                     return new APiResponds<LoginResponseDto>("401", "Invalid email or password", null);
 
-                if (loginData.Role == UserRole.Trainer && trainer.status != TrainerStatus.Accept)
+                // Check if the user is a trainer
+                if (loginData.Role == UserRole.Trainer)
                 {
-                    return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+                    var trainers = await _trainerRepo.GetAllAsync();
+                    var trainer = trainers.FirstOrDefault(u => u.Email == dto.Email && !u.IsDelete);
+
+                    if (trainer == null || trainer.status != TrainerStatus.Accept)
+                        return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+                }
+                var trainerdata = await _trainerRepo.GetAllAsync();
+                var trainerdetails = trainerdata.FirstOrDefault(p => p.UserId == p.Id);
+                // Get assigned trainer id if user is a normal user
+                int trainerId = 0;
+
+                // If the user is a trainer, get their trainer table ID
+                if (loginData.Role == UserRole.Trainer)
+                {
+                    var trainer = (await _trainerRepo.GetAllAsync())
+                        .FirstOrDefault(t => t.UserId == loginData.ID && !t.IsDelete);
+
+                    if (trainer == null || trainer.status != TrainerStatus.Accept)
+                        return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+
+                    trainerId = trainer.Id; // Trainer table ID
+                }
+                else // Normal user
+                {
+                    var userTrainer = (await _userRepo.GetAllAsync())
+                        .FirstOrDefault(ut => ut.ID == loginData.ID && !ut.IsDelete);
+
+                    if (userTrainer != null)
+                        trainerId = userTrainer.ID; // Assigned trainer ID
                 }
 
-                var token = CreateToken(loginData);
+                // Create token with correct trainerId
+                var token = CreateToken(loginData, trainerId);
+
 
                 var response = new LoginResponseDto
                 {
@@ -222,10 +248,11 @@ namespace FitFlex.Application.services
             }
         }
 
-        private string CreateToken(User user)
+        private string CreateToken(User user,int TrainerId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("muhammedsinandotnetdeveloperatbridgeon");
+
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -233,14 +260,21 @@ namespace FitFlex.Application.services
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                    new Claim(ClaimTypes.Role, user.Role.ToString()),
+                    new Claim("TrainerId", TrainerId.ToString())
+
                 }),
+
+
+
                 Expires = DateTime.UtcNow.AddDays(1),
                 Audience = "myusers",
                 Issuer = "MyApp",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
+
+
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);

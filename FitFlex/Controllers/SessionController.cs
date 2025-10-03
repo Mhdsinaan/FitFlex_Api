@@ -103,7 +103,6 @@ namespace FitFlex.API.Controllers
             if (dto == null || dto.SessionId <= 0)
                 return BadRequest(new APiResponds<string>("400", "Invalid request", null));
 
-            // Get TrainerId from JWT middleware
             if (!HttpContext.Items.ContainsKey("UserId"))
                 return Unauthorized(new APiResponds<string>("401", "Trainer not authenticated", null));
 

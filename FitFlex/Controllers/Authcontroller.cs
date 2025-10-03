@@ -92,7 +92,6 @@ public class AuthController : ControllerBase
     [HttpPut("change-trainer")]
     public async Task<IActionResult> ChangeTrainer([FromBody] ChangeTrainerRequestDto dto)
     {
-        // Get current user id from middleware (or JWT)
         int currentUserId = Convert.ToInt32(HttpContext.Items["UserId"]);
 
         var result = await _Trainerauth.ChangeTrainerAsync(dto.UserId, dto.NewTrainerId, currentUserId);

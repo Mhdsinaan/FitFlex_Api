@@ -1,6 +1,8 @@
 ﻿using FitFlex.Application.DTO_s;
 using FitFlex.Domain.Entities;
 using FitFlex.Domain.Entities.Attendance;
+using FitFlex.Domain.Entities.Meal;
+using FitFlex.Domain.Entities.NewFolder;
 using FitFlex.Domain.Entities.Session_model;
 using FitFlex.Domain.Entities.stripePayment;
 using FitFlex.Domain.Entities.Subscription_model;
@@ -36,7 +38,8 @@ namespace FitFlex.Infrastructure.Db_context
         public DbSet<Session> Sessions { get; set; }
         public DbSet<UserSession> UserSession { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
-
+        public DbSet<UserDietPlan> UserDietPlans { get; set; }
+        public DbSet<Meal> Meals { get; set; }
 
 
 

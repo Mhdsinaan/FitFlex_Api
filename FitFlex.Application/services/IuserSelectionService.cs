@@ -321,7 +321,7 @@ namespace FitFlex.Application.services
                     var res = new UserTrainerResponseDto
                     {
                         UserId = userid,
-                        TrainerId = trainer.Id,
+                        TrainerId = TrainerID,
                         AssignedDate = exist.CreatedOn,
                         TrainerName = trainer.FullName,
                         UserName = userById.UserName,
@@ -336,7 +336,7 @@ namespace FitFlex.Application.services
                 var userplan = new UserTrainer
                 {
                     UserId = userid,
-                    TrainerId = trainer.Id,
+                    TrainerId = TrainerID,
                     CreatedOn = DateTime.UtcNow,
                     CreatedBy = userid
 

@@ -107,6 +107,8 @@ builder.Services.AddScoped<IAdditionalSubscriptionService, AdditionalSubscriptio
 builder.Services.AddScoped<IAttendance, AttendanceService>();
 builder.Services.AddScoped<ISessions, SessionService>();
 builder.Services.AddScoped<IUserSession, UserSessionService>();
+builder.Services.AddScoped<IDietPlanService, DietPlanService>();
+
 
 
 

@@ -2,6 +2,7 @@
 using FitFlex.Application.Interfaces;
 using FitFlex.CommenAPi;
 using FitFlex.Domain.Entities;
+using FitFlex.Domain.Entities.Trainer_model;
 using FitFlex.Domain.Entities.Users_Model;
 using FitFlex.Domain.Entities.WorkoutPlan_Model;
 using FitFlex.Domain.Enum;
@@ -19,16 +20,19 @@ namespace FitFlex.Application.Services
         private readonly IRepository<WorkoutPlan> _workoutPlanRepo;
         private readonly IRepository<User> _Userrepo;
         private readonly IRepository<UserTrainer> _UserTrainer;
+        private readonly IRepository<Trainer> _TrainerRepo;
         public UserWorkoutAssignmentService(
              IRepository<UserWorkoutAssignment> assignmentRepo,
              IRepository<WorkoutPlan> workoutPlanRepo,
              IRepository<User> Userrepo,
-             IRepository<UserTrainer> UserTrainer)
+             IRepository<UserTrainer> UserTrainer,
+              IRepository<Trainer> TrainerRepo)
         {
             _assignmentRepo = assignmentRepo;
             _workoutPlanRepo = workoutPlanRepo;
             _Userrepo = Userrepo;
             _UserTrainer = UserTrainer;
+            _TrainerRepo = TrainerRepo;
         }
 
         public async Task<APiResponds<AssignWorkoutResponseDto>> AssignWorkoutAsync(AssignWorkoutRequest request, int TrainerId)
@@ -36,10 +40,13 @@ namespace FitFlex.Application.Services
             try
             {
 
-                var assignedTrainer = await _UserTrainer.GetAllAsync(); // or better: query DB directly
+                var trainer = await _TrainerRepo.GetByIdAsync(TrainerId);
+                if (trainer is null) return new APiResponds<AssignWorkoutResponseDto>("404", "trainer not found", null);
+
+                var assignedTrainer = await _UserTrainer.GetAllAsync();
                 var match = assignedTrainer.FirstOrDefault(p => p.TrainerId == TrainerId && p.UserId == request.UserId);
 
-                if (match == null)
+                if (match != null)
                     return new APiResponds<AssignWorkoutResponseDto>("404", "This trainer is not assigned to this user", null);
 
 
@@ -47,30 +54,30 @@ namespace FitFlex.Application.Services
                 var workout = await _workoutPlanRepo.GetByIdAsync(request.WorkoutID);
                 if (workout is null) return new APiResponds<AssignWorkoutResponseDto>("404", "workout plan notfound", null);
 
-                var existingAssignment = await _assignmentRepo .GetAllAsync(); 
-                                       
+                var existingAssignment = await _assignmentRepo.GetAllAsync();
+
 
                 var duplicate = existingAssignment.FirstOrDefault(a => a.UserId == request.UserId && a.WorkoutPlanId == request.WorkoutID);
 
 
-                if (duplicate != null && duplicate.AssignmentStatus!=AssignmentStatus.Completed )
+                if (duplicate != null && duplicate.AssignmentStatus != AssignmentStatus.Completed)
                 {
                     return new APiResponds<AssignWorkoutResponseDto>("409", "Workout already assigned to this user", null);
                 }
 
-                
+
                 var today = DateTime.UtcNow.Date;
 
                 var assignment = new UserWorkoutAssignment()
                 {
-                   
+
                     UserId = request.UserId,
                     AssignmentStatus = AssignmentStatus.Assigned,
                     WorkoutPlanId = request.WorkoutID,
-                    TrainerId=TrainerId,
+                    TrainerId = trainer.Id,
 
                     CreatedBy = TrainerId,
-                    CreatedOn = today,
+                    CreatedOn = DateTime.UtcNow,
 
 
                 };
@@ -82,8 +89,8 @@ namespace FitFlex.Application.Services
                 {
                     UserId = assignment.UserId,
                     TrainerId = TrainerId,
-                    AssignmentStatus=assignment.AssignmentStatus.ToString(),
-                  
+                    AssignmentStatus = assignment.AssignmentStatus.ToString(),
+
                     WorkoutId = assignment.WorkoutPlanId
                 };
 
@@ -92,11 +99,17 @@ namespace FitFlex.Application.Services
 
 
 
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                return new APiResponds<AssignWorkoutResponseDto>("500", ex.Message, null);
+                return new APiResponds<AssignWorkoutResponseDto>(
+                    "500",
+                    $"{ex.Message} | Inner: {ex.InnerException?.Message}",
+                    null
+                );
             }
         }
+
 
         public async Task<APiResponds<string>> DeleteAssignmentAsync(int assignmentId)
         {
