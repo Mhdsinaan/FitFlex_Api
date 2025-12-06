@@ -8,11 +8,10 @@ namespace FitFlex.Application.DTO_s.workout_DTO
 {
     public class AssignWorkoutRequest
     {
-        public string UserId { get; set; }
-        public int PlanId { get; set; }
-        public string TrainerId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public int UserId { get; set; }
+        public int WorkoutID { get; set; }
+
+      
     }
 
 

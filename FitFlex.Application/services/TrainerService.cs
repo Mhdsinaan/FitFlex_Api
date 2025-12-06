@@ -73,13 +73,25 @@ namespace FitFlex.Application.services
         {
             try
             {
+
                 var trainer = await _trainerRepo.GetByIdAsync(trainerId);
-                if (trainer == null || trainer.UserId == 0 || trainer.IsDelete)
+                
+                if (trainer == null || trainer.UserId == 0 || trainer.IsDelete==true)
                     return new APiResponds<User?>("404", "Trainer not found or already deleted", null);
 
-                var user = await _userRepo.GetByIdAsync(trainer.UserId);
-                if (user == null)
-                    return new APiResponds<User?>("404", "Associated user not found", null);
+                var user = await _userRepo.GetByIdAsync(trainerId);
+
+                if (user == null || user.IsDelete)
+                    return new APiResponds<User?>("404", "Trainer not found or already deleted", null);
+
+                var assignment = await _userTrainer.GetAllAsync();
+                var usertrainer = assignment.FirstOrDefault(p => p.TrainerId == trainerId && p.IsDelete !=true);
+
+                if (usertrainer != null) return new APiResponds<User?>("400", "Trainer is assigned to a user and cannot be deleted", null);
+
+
+
+                var userT = await _userRepo.GetByIdAsync(trainer.UserId);
 
                 trainer.DeletedBy = currentUserId;
                 trainer.DeletedOn = DateTime.UtcNow;
@@ -87,12 +99,13 @@ namespace FitFlex.Application.services
                 user.IsDelete = true;
 
                 _trainerRepo.Update(trainer);
-                _userRepo.Update(user);
+                _userRepo.Update(userT);
+
 
                 await _trainerRepo.SaveChangesAsync();
                 await _userRepo.SaveChangesAsync();
 
-                return new APiResponds<User?>("200", "Trainer deleted successfully", user);
+                return new APiResponds<User?>("200", "Trainer deleted successfully", userT);
             }
             catch (Exception ex)
             {
@@ -114,7 +127,9 @@ namespace FitFlex.Application.services
                     PhoneNumber = t.PhoneNumber,
                     Gender = t.Gender,
                     ExperienceYears = t.ExperienceYears,
-                    CreatedOn = t.CreatedOn
+                    CreatedOn = t.CreatedOn,
+                    Shift=t.Shift.ToString(),
+                    Status=t.status.ToString()
                 }).ToList();
 
                 return new APiResponds<List<TrainerResponseDto>>("200", "Trainers fetched successfully", dtoList);
@@ -130,7 +145,7 @@ namespace FitFlex.Application.services
             try
             {
                 var trainer = await _trainerRepo.GetByIdAsync(trainerId);
-                if(trainer.status != TrainerStatus.Accept && trainer.IsDelete==false)
+                if (trainer == null || trainer.status != TrainerStatus.Accept || trainer.IsDelete)
                     return new APiResponds<TrainerResponseDto>("404", "Trainer not found", null);
 
                 var dto = new TrainerResponseDto
@@ -142,9 +157,7 @@ namespace FitFlex.Application.services
                     PhoneNumber = trainer.PhoneNumber,
                     ExperienceYears = trainer.ExperienceYears,
                     Status = trainer.status.ToString(),
-                    Shift=trainer.Shift.ToString()
-
-
+                    Shift = trainer.Shift.ToString()
                 };
 
                 return new APiResponds<TrainerResponseDto>("200", "Trainer fetched successfully", dto);
@@ -155,6 +168,7 @@ namespace FitFlex.Application.services
                 return new APiResponds<TrainerResponseDto>("500", "Internal server error", null);
             }
         }
+
 
         public async Task<APiResponds<bool>> UpdateTrainerAsync(int trainerId, TrainerUpdateDto dto)
         {
@@ -232,6 +246,40 @@ namespace FitFlex.Application.services
            
             return new APiResponds<List<UserTrainerResponseDto>>("200", "Assigned users retrieved successfully", assignedDtos);
         }
+
+        public async Task<APiResponds<string>> ChangeTrainerAsync(int userId, int newTrainerId, int currentUserId)
+        {
+            try
+            {
+                var newTrainer = await _trainerRepo.GetByIdAsync(newTrainerId);
+                if (newTrainer == null || newTrainer.IsDelete)
+                    return new APiResponds<string>("404", "New trainer not found", null);
+
+                var assignments = await _userTrainer.GetAllAsync();
+                var existingAssignment = assignments.FirstOrDefault(p => p.UserId == userId && !p.IsDelete);
+
+                if (existingAssignment == null)
+                    return new APiResponds<string>("404", "User has no trainer assigned", null);
+
+                
+                if (existingAssignment.TrainerId == newTrainerId)
+                    return new APiResponds<string>("403", "Trainer already assigned to this user", null);
+
+                existingAssignment.TrainerId = newTrainerId;
+                existingAssignment.ModifiedBy = currentUserId;
+                existingAssignment.ModifiedOn = DateTime.UtcNow;
+
+                _userTrainer.Update(existingAssignment);
+                await _userTrainer.SaveChangesAsync();
+
+                return new APiResponds<string>("200", "Trainer changed successfully", $"New TrainerId: {newTrainerId}");
+            }
+            catch (Exception ex)
+            {
+                return new APiResponds<string>("500", ex.Message, null);
+            }
+        }
+
 
     }
 }

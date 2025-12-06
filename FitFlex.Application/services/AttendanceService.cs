@@ -56,31 +56,29 @@ namespace FitFlex.Application.services
         {
             try
             {
-                var allAttendances = await _AttendenceRepo.GetAllAsync();
-
-                var userAttendances = allAttendances
+                var userAttendances = (await _AttendenceRepo.GetAllAsync())
                     .Where(p => p.UserId == userId)
-                    .ToList(); 
+                    .ToList();
 
-                if (!userAttendances.Any())
-                    return new APiResponds<List<AttendanceDto>>("404", "Data not found", null);
+                if (userAttendances.Count == 0)
+                    return new APiResponds<List<AttendanceDto>>("404", "No attendance data found", null);
 
                 var dtoList = userAttendances.Select(p => new AttendanceDto
                 {
-                    
                     TrainerId = p.TrainerId,
                     PunchIn = p.PunchIn,
                     PunchOut = p.PunchOut,
-                    SlotTime =p.Slot,
+                    SlotTime = p.Slot,
                 }).ToList();
 
-                return new APiResponds<List<AttendanceDto>>("200", "Attendance details", dtoList);
+                return new APiResponds<List<AttendanceDto>>("200", "Attendance details fetched successfully", dtoList);
             }
             catch (Exception ex)
             {
                 return new APiResponds<List<AttendanceDto>>("500", $"An error occurred: {ex.Message}", null);
             }
         }
+
 
 
         public async Task<APiResponds<bool>> PunchInAsync(PunchAttendanceDto dto,int userid)
@@ -97,6 +95,7 @@ namespace FitFlex.Application.services
                 };
 
                 await _AttendenceRepo.AddAsync(attendance);
+                await _AttendenceRepo.SaveChangesAsync();
 
                 return new APiResponds<bool>("200", "Punch-in successful", true);
             }
@@ -121,6 +120,7 @@ namespace FitFlex.Application.services
                 attendance.PunchOut = DateTime.Now;
 
               _AttendenceRepo.Update(attendance);
+                await _AttendenceRepo.SaveChangesAsync();
 
                 return new APiResponds<bool>("200", "Punch-out successful", true);
             }
@@ -140,6 +140,7 @@ namespace FitFlex.Application.services
                     return new APiResponds<bool>("404", "Attendance not found", false);
 
                 attendance.Status = status.Status;
+                await _AttendenceRepo.SaveChangesAsync();
 
 
 

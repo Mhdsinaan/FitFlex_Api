@@ -22,6 +22,58 @@ namespace FitFlex.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FitFlex.Domain.Entities.Attendance.Attendance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("PunchIn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("PunchOut")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Attendances");
+                });
+
             modelBuilder.Entity("FitFlex.Domain.Entities.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -72,6 +124,121 @@ namespace FitFlex.Infrastructure.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("FitFlex.Domain.Entities.Meal.Meal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Calories")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DietPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FoodItems")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MealType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DietPlanId");
+
+                    b.ToTable("Meals");
+                });
+
+            modelBuilder.Entity("FitFlex.Domain.Entities.NewFolder.UserDietPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Calories")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MealDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDietPlans");
+                });
+
             modelBuilder.Entity("FitFlex.Domain.Entities.Session_model.Session", b =>
                 {
                     b.Property<int>("Id")
@@ -86,20 +253,18 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CurrentParticipants")
-                        .HasColumnType("int");
-
                     b.Property<int?>("DeletedBy")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
-
-                    b.Property<int>("MaxParticipants")
-                        .HasColumnType("int");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int");
@@ -111,10 +276,7 @@ namespace FitFlex.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StartTime")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TrainerId")
+                    b.Property<int>("TimeSlot")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -154,19 +316,17 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<int>("SessionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("TrainerID")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SessionId");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("UserSession");
                 });
 
-            modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.SubscriptionPlan", b =>
+            modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.AdditionalPlan", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -211,10 +371,10 @@ namespace FitFlex.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SubscriptionPlans");
+                    b.ToTable("AdditionalPlan");
                 });
 
-            modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.UserSubscriptionAddOn", b =>
+            modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.SubscriptionPlan", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -234,12 +394,62 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FeatureName")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationInMonth")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAdditional")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SubscriptionPlans");
+                });
+
+            modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.UserSubscriptionAddOn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdditionalPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -256,10 +466,21 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<long>("Price")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserSubscriptionId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AdditionalPlanId");
 
                     b.HasIndex("UserSubscriptionId");
 
@@ -402,6 +623,9 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("Isblock")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int");
 
@@ -424,6 +648,48 @@ namespace FitFlex.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("FitFlex.Domain.Entities.Workout", b =>
+                {
+                    b.Property<int>("WorkoutId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WorkoutId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("WorkoutId");
+
+                    b.HasIndex("TrainerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkoutPlans");
+                });
+
             modelBuilder.Entity("FitFlex.Domain.Entities.WorkoutPlan_Model.UserWorkoutAssignment", b =>
                 {
                     b.Property<int>("Id")
@@ -431,6 +697,9 @@ namespace FitFlex.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignmentStatus")
+                        .HasColumnType("int");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
@@ -453,7 +722,7 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("TrainerId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -463,6 +732,8 @@ namespace FitFlex.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TrainerId");
 
                     b.HasIndex("WorkoutPlanId");
 
@@ -548,9 +819,8 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int");
@@ -622,9 +892,6 @@ namespace FitFlex.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("BlockedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
@@ -699,11 +966,22 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FitFlex.Domain.Entities.Session_model.UserSession", b =>
+            modelBuilder.Entity("FitFlex.Domain.Entities.Meal.Meal", b =>
                 {
-                    b.HasOne("FitFlex.Domain.Entities.Session_model.Session", "Session")
+                    b.HasOne("FitFlex.Domain.Entities.NewFolder.UserDietPlan", "DietPlan")
                         .WithMany()
-                        .HasForeignKey("SessionId")
+                        .HasForeignKey("DietPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DietPlan");
+                });
+
+            modelBuilder.Entity("FitFlex.Domain.Entities.NewFolder.UserDietPlan", b =>
+                {
+                    b.HasOne("FitFlex.Domain.Entities.Trainer_model.Trainer", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -713,18 +991,37 @@ namespace FitFlex.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Session");
+                    b.Navigation("Trainer");
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FitFlex.Domain.Entities.Session_model.UserSession", b =>
+                {
+                    b.HasOne("FitFlex.Domain.Entities.Session_model.Session", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
             modelBuilder.Entity("FitFlex.Domain.Entities.Subscription_model.UserSubscriptionAddOn", b =>
                 {
+                    b.HasOne("FitFlex.Domain.Entities.Subscription_model.AdditionalPlan", "AdditionalPlan")
+                        .WithMany()
+                        .HasForeignKey("AdditionalPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("UserSubscription", "UserSubscription")
                         .WithMany("UserSubscriptionAddOns")
                         .HasForeignKey("UserSubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AdditionalPlan");
 
                     b.Navigation("UserSubscription");
                 });
@@ -748,8 +1045,33 @@ namespace FitFlex.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FitFlex.Domain.Entities.Workout", b =>
+                {
+                    b.HasOne("FitFlex.Domain.Entities.Trainer_model.Trainer", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FitFlex.Domain.Entities.Users_Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trainer");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FitFlex.Domain.Entities.WorkoutPlan_Model.UserWorkoutAssignment", b =>
                 {
+                    b.HasOne("FitFlex.Domain.Entities.Trainer_model.Trainer", "trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FitFlex.Domain.Entities.WorkoutPlan_Model.WorkoutPlan", "WorkoutPlan")
                         .WithMany("Assignments")
                         .HasForeignKey("WorkoutPlanId")
@@ -757,6 +1079,8 @@ namespace FitFlex.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("WorkoutPlan");
+
+                    b.Navigation("trainer");
                 });
 
             modelBuilder.Entity("FitFlex.Domain.Entities.WorkoutPlan_Model.WorkoutExercise", b =>

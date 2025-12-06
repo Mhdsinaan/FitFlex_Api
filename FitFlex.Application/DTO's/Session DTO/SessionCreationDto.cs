@@ -9,9 +9,12 @@ namespace FitFlex.Application.DTO_s.Session_DTO
 {
     public class SessionCreationDto
     {
-        public string Name { get; set; }  
-        public SessionTime StartTime { get; set; }
-       
-        public int TrainerId { get; set; }
+        public string Name { get; set; }
+        public string Details { get; set; }
+
+        
+
+
+
     }
 }

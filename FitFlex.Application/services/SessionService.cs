@@ -8,7 +8,9 @@ using FitFlex.CommenAPi;
 using FitFlex.Domain.Entities.Session_model;
 using FitFlex.Domain.Entities.Trainer_model;
 using FitFlex.Domain.Entities.Users_Model;
+using FitFlex.Domain.Enum;
 using FitFlex.Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore; 
 
 namespace FitFlex.Application.Services
@@ -26,35 +28,32 @@ namespace FitFlex.Application.Services
             _Trainerrepo = Trainerrepo;
         }
 
-        public async Task<APiResponds<SessionResponseDto>> CreateSessionAsync(SessionCreationDto sessionDto)
+        public async Task<APiResponds<SessionResponseDto>> CreateSessionAsync(SessionCreationDto sessionDto, SessionTime time,int userID)
         {
             try
             {
 
                 var existingSession = (await _sessionRepo.GetAllAsync());
-                                        
 
-                if (existingSession != null)
+
+                if (existingSession.Any(s => s.Name == sessionDto.Name)) 
                 {
                     return new APiResponds<SessionResponseDto>("400", "This session already exists", null);
                 }
-
-               
-                var trainer = await _Trainerrepo.GetAllQueryable()
-                                                .FirstOrDefaultAsync(t => t.Id == sessionDto.TrainerId);
-
-                if (trainer == null)
-                {
-                    return new APiResponds<SessionResponseDto>("404", "Trainer not found", null);
-                }
-
-             
                 var newSession = new Session
                 {
+                    
                     Name = sessionDto.Name,
-                    StartTime = sessionDto.StartTime,
-                    TrainerId = sessionDto.TrainerId
+                    Details=sessionDto.Details,
+                    TimeSlot=time,
+                   
+
+
+                    CreatedBy =userID,
+                    CreatedOn=DateTime.UtcNow,
                 };
+
+                
 
                 await _sessionRepo.AddAsync(newSession);
                 await _sessionRepo.SaveChangesAsync();
@@ -63,10 +62,10 @@ namespace FitFlex.Application.Services
                 {
                     Id = newSession.Id,
                     SessionName = newSession.Name,
-                    StartTime = newSession.StartTime,
-                    TrainerName = trainer.FullName,
-                    TrainerId=newSession.TrainerId
-                                                     
+                    TimeSlot = newSession.TimeSlot.ToString(),
+                    Details=newSession.Details
+                   
+
                 };
 
                 return new APiResponds<SessionResponseDto>("200", "Session created successfully", responseDto);
@@ -86,7 +85,17 @@ namespace FitFlex.Application.Services
                 if (session == null)
                     return new APiResponds<SessionResponseDto>("404", "Session not found", null);
 
-                var responseDto = _mapper.Map<SessionResponseDto>(session);
+                var responseDto = new SessionResponseDto
+                {
+                    Id = session.Id,
+                    SessionName = session.Name,
+                    Details = session.Details,
+                    TimeSlot = session.TimeSlot.ToString(),
+                   
+                    
+                };
+
+
                 return new APiResponds<SessionResponseDto>("200", "Success", responseDto);
             }
             catch (Exception ex)
@@ -100,7 +109,15 @@ namespace FitFlex.Application.Services
             try
             {
                 var sessions = await _sessionRepo.GetAllAsync();
-                var responseDtos = _mapper.Map<IEnumerable<SessionResponseDto>>(sessions);
+
+                var responseDtos = sessions.Select(session => new SessionResponseDto
+                {
+                    Id = session.Id,
+                    SessionName = session.Name,
+                    Details = session.Details,
+                    TimeSlot = session.TimeSlot.ToString(),
+                
+                }).ToList();
 
                 return new APiResponds<IEnumerable<SessionResponseDto>>("200", "Success", responseDtos);
             }
@@ -110,23 +127,53 @@ namespace FitFlex.Application.Services
             }
         }
 
-        public async Task<APiResponds<IEnumerable<SessionResponseDto>>> GetByTrainerIdWithDtoAsync(int trainerId)
+        //public async Task<APiResponds<IEnumerable<SessionResponseDto>>> GetByTrainerIdWithDtoAsync(int trainerId)
+        //{
+        //    try
+        //    {
+        //        var sessions = await _sessionRepo.GetAllAsync();
+        //        var filtered = sessions.Where(s => s.TrainerId == trainerId);
+        //        var responseDtos = _mapper.Map<IEnumerable<SessionResponseDto>>(filtered);
+
+        //        return new APiResponds<IEnumerable<SessionResponseDto>>("200", "Success", responseDtos);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new APiResponds<IEnumerable<SessionResponseDto>>("500", $"Error fetching trainer sessions: {ex.Message}", null);
+        //    }
+        //}
+
+        public async Task<APiResponds<SessionResponseDto>> DeleteSession(int sessionId,int UserID)
         {
             try
             {
-                var sessions = await _sessionRepo.GetAllAsync();
-                var filtered = sessions.Where(s => s.TrainerId == trainerId);
-                var responseDtos = _mapper.Map<IEnumerable<SessionResponseDto>>(filtered);
+                var session = await _sessionRepo.GetByIdAsync(sessionId);
+                if (session is null) return new APiResponds<SessionResponseDto>("404", "session not found", null);
+                session.IsDelete = true;
+                session.DeletedBy = UserID;
+                session.DeletedOn = DateTime.UtcNow;
 
-                return new APiResponds<IEnumerable<SessionResponseDto>>("200", "Success", responseDtos);
+                _sessionRepo.Update(session);
+                await _sessionRepo.SaveChangesAsync();
+
+                var responseDto = new SessionResponseDto
+                {
+                    Id = session.Id,
+                    SessionName = session.Name,
+                    TimeSlot = session.TimeSlot.ToString(),
+                    Details=session.Details,
+                    
+                  
+
+                };
+                return new APiResponds<SessionResponseDto>("200", "session deleted sucess fully", responseDto);
+
             }
             catch (Exception ex)
             {
-                return new APiResponds<IEnumerable<SessionResponseDto>>("500", $"Error fetching trainer sessions: {ex.Message}", null);
+                return new APiResponds<SessionResponseDto>("500", $"error delete session : {ex.Message}", null);
             }
+
         }
-
-
-
     }
 }

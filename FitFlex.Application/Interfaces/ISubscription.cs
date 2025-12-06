@@ -12,6 +12,7 @@ namespace FitFlex.Application.Interfaces
         Task<APiResponds<IEnumerable<SubscriptionPlansResponseDto>>> GetAllPlansAsync();
         Task<APiResponds<SubscriptionPlansResponseDto>> GetPlanByIdAsync(int id);
         Task<APiResponds<SubscriptionPlansResponseDto>> CreatePlanAsync(SubscriptionPlanDto plan);
+        
         Task<APiResponds<SubscriptionPlansResponseDto>> UpdatePlanAsync(int id, SubscriptionPlanDto planDto);
         Task<APiResponds<bool>> DeletePlanAsync(int id);
 

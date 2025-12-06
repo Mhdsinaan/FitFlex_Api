@@ -5,6 +5,7 @@ using FitFlex.CommenAPi;
 using FitFlex.Domain.Entities.Trainer_model;
 using FitFlex.Domain.Entities.Users_Model;
 using FitFlex.Domain.Entities.WorkoutPlan_Model;
+using FitFlex.Domain.Enum;
 using FitFlex.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -151,7 +152,7 @@ namespace FitFlex.Application.Services
                 Id = plan.Id,
                 Name = plan.Name,
                 Description = plan.Description,
-                Level = plan.Level,
+                Level = plan.Level.ToString(),
                 TrainerID = plan.CreatedBy,
                
                 Exercises = plan.Exercises?.Select(e => new WorkoutExerciseResponse

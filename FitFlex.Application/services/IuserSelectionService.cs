@@ -30,7 +30,10 @@ namespace FitFlex.Application.services
         private readonly IRepository<Trainer> _TrainerRepo;
         private readonly IRepository<SubscriptionPlan> _subscription;
         private readonly IRepository<UserTrainer> _userTraniner;
-        public IuserSelectionService(IRepository<UserSubscription> usersub, IRepository<User> userRepo, IRepository<Trainer> TrainerRepo, IRepository<SubscriptionPlan> subscription,
+        private readonly IRepository<UserSubscriptionAddOn> _addon;
+        private readonly IRepository<AdditionalPlan> _addinaalreppo;
+
+        public IuserSelectionService(IRepository<UserSubscription> usersub, IRepository<User> userRepo, IRepository<Trainer> TrainerRepo, IRepository<SubscriptionPlan> subscription, IRepository<UserSubscriptionAddOn> additionalPlanRepo, IRepository<AdditionalPlan> addinaalreppo,
             IRepository<UserTrainer> userTraniner)
         {
             _usersub = usersub;
@@ -38,6 +41,9 @@ namespace FitFlex.Application.services
             _TrainerRepo = TrainerRepo;
             _subscription = subscription;
             _userTraniner = userTraniner;
+            _addon = additionalPlanRepo;
+            _addinaalreppo = addinaalreppo;
+
         }
 
         public async Task<APiResponds<List<UserSubscriptionResponseDto>>> AllUserSubscriptions()
@@ -70,33 +76,29 @@ namespace FitFlex.Application.services
 
         public async Task<APiResponds<List<UserSubscriptionResponseDto>>> GetSubscriptionsByTrainerId(int trainerId)
         {
-
-            var subscriptions = await _usersub.GetAllQueryable()
-                .Include(u => u.User)
-                .Include(s => s.Subscription)
-                .Include(t => t.Trainer)
+           
+            var result = await _usersub.GetAllQueryable()
                 .Where(s => s.TrainerID == trainerId)
+                .Select(s => new UserSubscriptionResponseDto
+                {
+                    UserId = s.UserId,
+                    UserName = s.User.UserName,         
+                    PlanId = s.SubscriptionId,
+                    PlanName = s.Subscription.Name,      
+                    TrainerId = s.TrainerID,
+                    TrainerName = s.Trainer.FullName,   
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    SubscriptionStatus = s.SubscriptionStatus
+                })
                 .ToListAsync();
 
-            if (!subscriptions.Any())
+            if (result.Count == 0)
                 return new APiResponds<List<UserSubscriptionResponseDto>>("404", "No subscriptions for this trainer", null);
 
-
-            var result = subscriptions.Select(s => new UserSubscriptionResponseDto
-            {
-                UserId = s.UserId,
-                UserName = s.User?.UserName,
-                PlanId = s.SubscriptionId,
-                PlanName = s.Subscription?.Name,
-                TrainerId = s.TrainerID,
-                TrainerName = s.Trainer?.FullName,
-                StartDate = s.StartDate,
-                EndDate = s.EndDate,
-                SubscriptionStatus = s.SubscriptionStatus
-            }).ToList();
-
-            return new APiResponds<List<UserSubscriptionResponseDto>>("200", "success", result);
+            return new APiResponds<List<UserSubscriptionResponseDto>>("200", "Success", result);
         }
+
 
 
         public async Task<APiResponds<UserSubscriptionResponseDto>> GetUserSubscriptionByUserId(int userId)
@@ -122,7 +124,7 @@ namespace FitFlex.Application.services
 
 
                 var response = new UserSubscriptionResponseDto
-                {
+                {   
                     UserId = usersub.UserId,
                     UserName = usersub.User?.UserName,
                     PlanId = usersub.SubscriptionId,
@@ -172,15 +174,14 @@ namespace FitFlex.Application.services
 
 
 
-        public async Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(int PlanID,int UserID)
+        public async Task<APiResponds<UserSubscriptionResponseDto>> SubscriptionSelection(SubscriptionSelectionDto dto, int userId)
         {
             try
             {
-
-                
-                var user = await _userRepo.GetByIdAsync(UserID);
+                var user = await _userRepo.GetByIdAsync(userId);
                 if (user is null)
                     return new APiResponds<UserSubscriptionResponseDto>("404", "User not found", null);
+
                 if (user.Role == UserRole.Admin)
                 {
                     return new APiResponds<UserSubscriptionResponseDto>(
@@ -190,34 +191,30 @@ namespace FitFlex.Application.services
                     );
                 }
 
-
-                
                 var userTrainer = await _userTraniner.GetAllQueryable()
                       .Include(ut => ut.Trainer)
-                      .FirstOrDefaultAsync(ut => ut.UserId == UserID);
-
+                      .FirstOrDefaultAsync(ut => ut.UserId == userId);
 
                 if (userTrainer is null)
                     return new APiResponds<UserSubscriptionResponseDto>("404", "Trainer not assigned to this user", null);
 
                 var trainerId = userTrainer.TrainerId;
 
-
-               
-                var plan = await _subscription.GetByIdAsync(PlanID);
-                if (plan ==null || plan.IsDelete)
+                var plan = await _subscription.GetByIdAsync(dto.PlanId);
+                if (plan == null || plan.IsDelete)
                     return new APiResponds<UserSubscriptionResponseDto>("404", "Plan not found", null);
 
                 var existing = (await _usersub.GetAllAsync())
-                                .FirstOrDefault(s => s.UserId == UserID && s.EndDate > DateTime.UtcNow);
+                                .FirstOrDefault(s => s.UserId == userId && s.EndDate > DateTime.UtcNow);
                 if (existing != null)
                     return new APiResponds<UserSubscriptionResponseDto>("400", "User already has an active subscription", null);
 
+               
                 var newSub = new UserSubscription
                 {
                     UserId = user.ID,
                     SubscriptionId = plan.Id,
-                    TrainerID=trainerId,
+                    TrainerID = trainerId,
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddMonths(plan.DurationInMonth),
                     SubscriptionStatus = subscriptionStatus.pending,
@@ -226,20 +223,65 @@ namespace FitFlex.Application.services
                 };
 
                 await _usersub.AddAsync(newSub);
-                await _usersub.SaveChangesAsync();
+                await _usersub.SaveChangesAsync();   
+
+                List<UserSubscriptionAddOn> additionalSubs = new();
+                List<SubscriptionPlansResponseDto> additionalPlansResponse = new();
+
+                if (dto.AdditionalPlanIds != null && dto.AdditionalPlanIds.Any())
+                {
+                    foreach (var addPlanId in dto.AdditionalPlanIds)
+                    {
+                        if (addPlanId <= 0) continue;
+
+                        var addPlan = await _addinaalreppo.GetByIdAsync(addPlanId);
+                        if (addPlan != null)
+                        {
+                            additionalSubs.Add(new UserSubscriptionAddOn
+                            {
+                                UserSubscriptionId = newSub.Id,
+                                AdditionalPlanId = addPlan.Id,
+                                UserId = userId,
+                                StartDate = DateTime.UtcNow,
+                                EndDate = DateTime.UtcNow.AddMonths(addPlan.DurationInMonth),
+                                CreatedOn = DateTime.UtcNow,
+                                PaymentStatus = PaymentStatus.Pending,
+                                Status = subscriptionStatus.pending
+                            });
+
+                           
+                            additionalPlansResponse.Add(new SubscriptionPlansResponseDto
+                            {
+                                Id = addPlan.Id,
+                                Name = addPlan.Name,
+                                DurationInMonth = addPlan.DurationInMonth,
+                                Price = addPlan.Price
+                            });
+                        }
+                    }
+
+                    if (additionalSubs.Any())
+                    {
+                        foreach (var addOn in additionalSubs)
+                        {
+                            await _addon.AddAsync(addOn);
+                        }
+                        await _addon.SaveChangesAsync();
+                    }
+                }
 
                 var response = new UserSubscriptionResponseDto
                 {
                     UserId = newSub.UserId,
                     PlanId = newSub.SubscriptionId,
-                    UserName=user.UserName,
-                    PlanName=plan.Name,
-                    TrainerName= userTrainer.Trainer.FullName,
-                    TrainerId=trainerId,
-
+                    UserName = user.UserName,
+                    PlanName = plan.Name,
+                    TrainerName = userTrainer.Trainer.FullName,
+                    TrainerId = trainerId,
                     StartDate = newSub.StartDate,
                     EndDate = newSub.EndDate,
-                    SubscriptionStatus = newSub.SubscriptionStatus
+                    SubscriptionStatus = newSub.SubscriptionStatus,
+                    AdditionalPlans = additionalPlansResponse 
                 };
 
                 return new APiResponds<UserSubscriptionResponseDto>("200", "Subscription selected successfully", response);
@@ -260,6 +302,7 @@ namespace FitFlex.Application.services
                 );
             }
         }
+
         public async Task<APiResponds<UserTrainerResponseDto>> TrainerSelcetion(int userid, int TrainerID)
         {
             try
@@ -278,7 +321,7 @@ namespace FitFlex.Application.services
                     var res = new UserTrainerResponseDto
                     {
                         UserId = userid,
-                        TrainerId = trainer.Id,
+                        TrainerId = TrainerID,
                         AssignedDate = exist.CreatedOn,
                         TrainerName = trainer.FullName,
                         UserName = userById.UserName,
@@ -293,7 +336,7 @@ namespace FitFlex.Application.services
                 var userplan = new UserTrainer
                 {
                     UserId = userid,
-                    TrainerId = trainer.Id,
+                    TrainerId = TrainerID,
                     CreatedOn = DateTime.UtcNow,
                     CreatedBy = userid
 
@@ -330,55 +373,10 @@ namespace FitFlex.Application.services
 
 
         }
-        public async Task<APiResponds<bool>> BlockSubscriptionAsync(int userId)
-        {
-            var sub = await _usersub.GetAllQueryable()
-                .FirstOrDefaultAsync(s =>  s.UserId == userId);
-
-            if (sub == null)
-                return new APiResponds<bool>("404", "Subscription not found for this user", false);
-
-            if(sub.SubscriptionStatus==subscriptionStatus.Blocked)
-            {
-                return new APiResponds<bool>("404", "its already blocked user", false);
-            }
-            sub.SubscriptionStatus = subscriptionStatus.Blocked;
-            sub.BlockedAt = DateTime.UtcNow;
-
-            _usersub.Update(sub);
-            await _usersub.SaveChangesAsync();
-
-            return new APiResponds<bool>("200", "Subscription blocked successfully", true);
-        }
+      
 
 
-        public async Task<APiResponds<bool>> UnblockSubscriptionAsync(int userId)
-        {
-            var sub = await _usersub.GetAllQueryable()
-                .FirstOrDefaultAsync(s =>  s.UserId == userId && s.SubscriptionStatus==subscriptionStatus.Blocked);
-
-            if (sub == null)
-                return new APiResponds<bool>("404", "there is no blocked user", false);
-
-            if (sub.BlockedAt.HasValue && DateTime.UtcNow - sub.BlockedAt.Value > TimeSpan.FromDays(150))
-            {
-                sub.SubscriptionStatus = subscriptionStatus.Expired;
-
-                _usersub.Update(sub);
-                await _usersub.SaveChangesAsync();
-
-                return new APiResponds<bool>("410", "Subscription expired after block period", false);
-            }
-
-            
-            sub.SubscriptionStatus = subscriptionStatus.Active;
-            sub.BlockedAt = null;
-
-            _usersub.Update(sub);
-            await _usersub.SaveChangesAsync();
-
-            return new APiResponds<bool>("200", "Subscription unblocked successfully", true);
-        }
+       
 
         
     }

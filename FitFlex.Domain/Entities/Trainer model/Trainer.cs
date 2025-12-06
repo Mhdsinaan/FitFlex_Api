@@ -34,5 +34,6 @@ namespace FitFlex.Domain.Entities.Trainer_model
 
 
 
+
     }
 }

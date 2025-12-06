@@ -28,7 +28,7 @@ namespace FitFlex.Application.services
             _trainerRepo = trainerRepo;
         }
 
-        
+
         public async Task<APiResponds<UserResponseDto>> GetByUser(int id)
         {
             try
@@ -53,7 +53,7 @@ namespace FitFlex.Application.services
             }
         }
 
-       
+
         public async Task<APiResponds<List<UserResponseDto>>> GetAllAsync()
         {
             try
@@ -81,7 +81,7 @@ namespace FitFlex.Application.services
             }
         }
 
-       
+
         public async Task<APiResponds<TrainerResponseDto>> GetTrainerByID(int id)
         {
             try
@@ -107,7 +107,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<LoginResponseDto>> Login(LoginDto dto)
         {
             try
@@ -121,7 +121,43 @@ namespace FitFlex.Application.services
                 if (loginData == null)
                     return new APiResponds<LoginResponseDto>("401", "Invalid email or password", null);
 
-                var token = CreateToken(loginData);
+                // Check if the user is a trainer
+                if (loginData.Role == UserRole.Trainer)
+                {
+                    var trainers = await _trainerRepo.GetAllAsync();
+                    var trainer = trainers.FirstOrDefault(u => u.Email == dto.Email && !u.IsDelete);
+
+                    if (trainer == null || trainer.status != TrainerStatus.Accept)
+                        return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+                }
+                var trainerdata = await _trainerRepo.GetAllAsync();
+                var trainerdetails = trainerdata.FirstOrDefault(p => p.UserId == p.Id);
+                // Get assigned trainer id if user is a normal user
+                int trainerId = 0;
+
+                // If the user is a trainer, get their trainer table ID
+                if (loginData.Role == UserRole.Trainer)
+                {
+                    var trainer = (await _trainerRepo.GetAllAsync())
+                        .FirstOrDefault(t => t.UserId == loginData.ID && !t.IsDelete);
+
+                    if (trainer == null || trainer.status != TrainerStatus.Accept)
+                        return new APiResponds<LoginResponseDto>("403", "Trainer not yet accepted", null);
+
+                    trainerId = trainer.Id; // Trainer table ID
+                }
+                else // Normal user
+                {
+                    var userTrainer = (await _userRepo.GetAllAsync())
+                        .FirstOrDefault(ut => ut.ID == loginData.ID && !ut.IsDelete);
+
+                    if (userTrainer != null)
+                        trainerId = userTrainer.ID; // Assigned trainer ID
+                }
+
+                // Create token with correct trainerId
+                var token = CreateToken(loginData, trainerId);
+
 
                 var response = new LoginResponseDto
                 {
@@ -139,7 +175,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<string>> Register(RegisterDto dto)
         {
             try
@@ -167,7 +203,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        
+
         public async Task<APiResponds<string>> TrainerRegistration(TrainerRegisterDto dto)
         {
             try
@@ -178,7 +214,7 @@ namespace FitFlex.Application.services
                 if (existingUser != null)
                     return new APiResponds<string>("400", "Trainer already exists", null);
 
-               
+
                 var newUser = new User
                 {
                     UserName = dto.FullName,
@@ -190,7 +226,7 @@ namespace FitFlex.Application.services
                 await _userRepo.AddAsync(newUser);
                 await _userRepo.SaveChangesAsync();
 
-                
+
                 var newTrainer = new Trainer
                 {
                     FullName = dto.FullName,
@@ -212,7 +248,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        private string CreateToken(User user)
+        private string CreateToken(User user,int TrainerId)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "User is null");
@@ -225,14 +261,27 @@ namespace FitFlex.Application.services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("muhammedsinandotnetdeveloperatbridgeon");
 
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
+<<<<<<< HEAD
             new Claim(ClaimTypes.Name, userName),
             new Claim(ClaimTypes.NameIdentifier, userId),
             new Claim(ClaimTypes.Role, role)
         }),
+=======
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role.ToString()),
+                    new Claim("TrainerId", TrainerId.ToString())
+
+                }),
+
+
+
+>>>>>>> 832d9f53060d485ef35074cea2c300ff356ad517
                 Expires = DateTime.UtcNow.AddDays(1),
                 Audience = "myusers",
                 Issuer = "MyApp",
@@ -241,9 +290,37 @@ namespace FitFlex.Application.services
                     SecurityAlgorithms.HmacSha256Signature)
             };
 
+
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
+<<<<<<< HEAD
+=======
+        public async Task<APiResponds<string>> BlockUnBlock(int userId)
+        {
+            try
+            {
+                var user = await _userRepo.GetByIdAsync(userId);
+                if (user == null || user.IsDelete)
+                    return new APiResponds<string>("404", "User not found", null);
+
+              
+                user.Isblock = !user.Isblock;
+
+                _userRepo.Update(user);
+                await _userRepo.SaveChangesAsync();
+
+                var message = user.Isblock ? "User blocked successfully" : "User unblocked successfully";
+                return new APiResponds<string>("200", message, null);
+            }
+            catch (Exception ex)
+            {
+                return new APiResponds<string>("500", ex.Message, null);
+            }
+        }
+
+>>>>>>> 832d9f53060d485ef35074cea2c300ff356ad517
     }
 }

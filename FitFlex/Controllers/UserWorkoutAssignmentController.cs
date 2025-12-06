@@ -1,9 +1,12 @@
 ﻿using FitFlex.Application.DTO_s.workout_DTO;
 using FitFlex.Application.Interfaces;
+using FitFlex.CommenAPi;
 using FitFlex.Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,13 +19,36 @@ public class UserWorkoutAssignmentController : ControllerBase
         _assignmentService = assignmentService;
     }
 
+    
     [HttpPost("assign")]
-    public async Task<IActionResult> AssignWorkoutPlan(int userId, int workoutPlanId)
+    [Authorize(Roles = "Trainer")]
+
+    public async Task<IActionResult> AssignWorkout([FromBody] AssignWorkoutRequest request)
     {
-        var result = await _assignmentService.AssignWorkoutPlanAsync(userId, workoutPlanId);
+        int trainerId = Convert.ToInt32(HttpContext.Items["UserId"]);
+        var result = await _assignmentService.AssignWorkoutAsync(request, trainerId);
         if (result == null) return BadRequest(result);
         return Ok(result);
     }
+
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetAllWorkoutsByUser(int userId)
+    {
+        var result = await _assignmentService.GetAllWorkoutsByUserAsync(userId);
+        if (result == null || result.Data == null) return NotFound(result);
+        return Ok(result);
+    }
+
+
+    [HttpGet("user/{userId}/today")]
+    public async Task<IActionResult> GetTodayWorkoutsByUser(int userId)
+    {
+        var result = await _assignmentService.GetTodayWorkoutsByUserAsync(userId);
+        if (result == null || result.Data == null) return NotFound(result);
+        return Ok(result);
+    }
+
 
     [HttpPut("{assignmentId}/status")]
     public async Task<IActionResult> UpdateAssignmentStatus(int assignmentId, [FromQuery] AssignmentStatus status)
@@ -32,30 +58,16 @@ public class UserWorkoutAssignmentController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetAssignmentById(int id)
-    {
-        var assignment = await _assignmentService.GetAssignmentByIdAsync(id);
-        if (assignment == null) return NotFound("Assignment not found");
-        return Ok(assignment);
-    }
+    // Get a single assignment by ID
+    //[HttpGet("{id}")]
+    //public async Task<IActionResult> GetAssignmentById(int id)
+    //{
+    //    var assignment = await _assignmentService.GetAssignmentByIdAsync(id);
+    //    if (assignment == null) return NotFound("Assignment not found");
+    //    return Ok(assignment);
 
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetAssignmentsByUser(int userId)
-    {
-        var assignments = await _assignmentService.GetAssignmentsByUserAsync(userId);
-        if (assignments == null) return NotFound(assignments);
-        return Ok(assignments);
-    }
 
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllAssignments()
-    {
-        var assignments = await _assignmentService.GetAllAssignmentsAsync();
-        if (assignments == null) return NotFound(assignments);
-        return Ok(assignments);
-    }
-
+    // Delete an assignment
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAssignment(int id)
     {
@@ -64,3 +76,7 @@ public class UserWorkoutAssignmentController : ControllerBase
         return Ok(result);
     }
 }
+
+    
+   
+
