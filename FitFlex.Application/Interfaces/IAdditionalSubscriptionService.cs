@@ -19,7 +19,7 @@ namespace FitFlex.Application.Interfaces
 
         Task<APiResponds<List<SubscriptionPlansResponseDto>>> AllAdditionalSubscription();
         Task<APiResponds<bool>> RemoveAdditionalFeatureAsync(int additionalSubscriptionId);
-        Task<APiResponds<SubscriptionPlansResponseDto>> CreatePlanAsync(AdditionalSubscriptionPlanDto plan);
+        Task<APiResponds<SubscriptionPlansResponseDto>> CreatePlanAsync(SubscriptionPlanDto plan);
 
 
 

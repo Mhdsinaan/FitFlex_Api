@@ -248,7 +248,7 @@ namespace FitFlex.Application.services
             }
         }
 
-        private string CreateToken(User user,int TrainerId)
+        private string CreateToken(User user, int TrainerId)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "User is null");
@@ -261,27 +261,16 @@ namespace FitFlex.Application.services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("muhammedsinandotnetdeveloperatbridgeon");
 
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-<<<<<<< HEAD
             new Claim(ClaimTypes.Name, userName),
             new Claim(ClaimTypes.NameIdentifier, userId),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.Role, role),
+            new Claim("TrainerId", TrainerId.ToString())   // merged from remote
         }),
-=======
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString()),
-                    new Claim("TrainerId", TrainerId.ToString())
 
-                }),
-
-
-
->>>>>>> 832d9f53060d485ef35074cea2c300ff356ad517
                 Expires = DateTime.UtcNow.AddDays(1),
                 Audience = "myusers",
                 Issuer = "MyApp",
@@ -290,14 +279,13 @@ namespace FitFlex.Application.services
                     SecurityAlgorithms.HmacSha256Signature)
             };
 
-
-
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
-<<<<<<< HEAD
-=======
+
+        // ------------------ MERGED METHOD FROM REMOTE ------------------
+
         public async Task<APiResponds<string>> BlockUnBlock(int userId)
         {
             try
@@ -306,7 +294,6 @@ namespace FitFlex.Application.services
                 if (user == null || user.IsDelete)
                     return new APiResponds<string>("404", "User not found", null);
 
-              
                 user.Isblock = !user.Isblock;
 
                 _userRepo.Update(user);
@@ -320,7 +307,5 @@ namespace FitFlex.Application.services
                 return new APiResponds<string>("500", ex.Message, null);
             }
         }
-
->>>>>>> 832d9f53060d485ef35074cea2c300ff356ad517
     }
 }
