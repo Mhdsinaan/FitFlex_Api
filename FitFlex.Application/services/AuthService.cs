@@ -214,6 +214,14 @@ namespace FitFlex.Application.services
 
         private string CreateToken(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User is null");
+
+            // Fix null/empty fields (safe defaults)
+            var userName = string.IsNullOrWhiteSpace(user.UserName) ? "UnknownUser" : user.UserName;
+            var role = user.Role.ToString();
+            var userId = user.ID > 0 ? user.ID.ToString() : "0";
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("muhammedsinandotnetdeveloperatbridgeon");
 
@@ -221,19 +229,21 @@ namespace FitFlex.Application.services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
-                }),
+            new Claim(ClaimTypes.Name, userName),
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.Role, role)
+        }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 Audience = "myusers",
                 Issuer = "MyApp",
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
     }
 }
