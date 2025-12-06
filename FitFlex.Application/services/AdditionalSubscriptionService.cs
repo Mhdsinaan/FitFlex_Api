@@ -84,7 +84,7 @@ namespace FitFlex.Application.services
                 if (userplan is null ) return new APiResponds<AdditionalFeatureResponseDto>("404", "user have  not plan", null);
 
                 var plan = await _SubscriptionRepo.GetByIdAsync(dto.PlanID);
-                if (plan is null || !plan.IsAdditional) return new APiResponds<AdditionalFeatureResponseDto>("404", "user  plan not found", null);
+                if (plan is null ) return new APiResponds<AdditionalFeatureResponseDto>("404", "user  plan not found", null);
 
                 var additonal = new UserSubscriptionAddOn
                 {
@@ -179,7 +179,7 @@ namespace FitFlex.Application.services
         }
         
 
-        public async Task<APiResponds<SubscriptionPlansResponseDto>> CreatePlanAsync(AdditionalSubscriptionPlanDto plan)
+        public async Task<APiResponds<SubscriptionPlansResponseDto>> CreatePlanAsync(CreateSubscriptionPlanDto plan)
         {
             var create = await _SubscriptionRepo.GetAllAsync();
             var exist = create.FirstOrDefault(p => p.Name == plan.Name);
